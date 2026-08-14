@@ -18,17 +18,30 @@ const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const proposalRoutes = require('./routes/proposalRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const skillRoutes = require('./routes/skillRoutes');
+const contractRoutes = require('./routes/contractRoutes');
+const supportRoutes = require('./routes/supportRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 app.get('/', (req, res) => {
     res.send('🚀 Freelancer Marketplace API is running...');
 });
 
-// Use routes
+// ✅ All routes go HERE (before error handler)
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/skills', skillRoutes);
+app.use('/api/contracts', contractRoutes);
+app.use('/api/support', supportRoutes);
+app.use('/api/categories', categoryRoutes);
 
+// ✅ Error handler goes LAST (after all routes)
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
