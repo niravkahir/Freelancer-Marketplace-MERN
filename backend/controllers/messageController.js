@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 // @desc    Send message
 // @route   POST /api/messages
@@ -32,10 +33,29 @@ exports.sendMessage = async (req, res) => {
             isRead: false
         });
 
+        // Populate sender details
+        const populatedMessage = await Message.findById(message._id)
+            .populate('senderId', 'name email profilePicture')
+            .populate('receiverId', 'name email profilePicture');
+
+        // ✅ CREATE NOTIFICATION FOR RECEIVER
+        await Notification.create({
+            userId: receiverId,
+            type: 'MESSAGE_RECEIVED',
+            title: 'New Message',
+            message: `${req.user.name} sent you a message: "${content.substring(0, 100)}${content.length > 100 ? '...' : ''}"`,
+            link: `/messages/${req.user.id}`,
+            relatedEntity: {
+                entityType: 'MESSAGE',
+                entityId: message._id
+            },
+            priority: 'HIGH'
+        });
+
         res.status(201).json({
             success: true,
             message: 'Message sent successfully',
-            data: message
+            data: populatedMessage
         });
     } catch (error) {
         console.error('Send message error:', error);
@@ -53,14 +73,24 @@ exports.getMessages = async (req, res) => {
     try {
         const otherUserId = req.params.userId;
 
+        // Check if other user exists
+        const otherUser = await User.findById(otherUserId);
+        if (!otherUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
         const messages = await Message.find({
             $or: [
                 { senderId: req.user.id, receiverId: otherUserId },
                 { senderId: otherUserId, receiverId: req.user.id }
-            ]
+            ],
+            isDeleted: false
         })
-        .populate('senderId', 'name email')
-        .populate('receiverId', 'name email')
+        .populate('senderId', 'name email profilePicture')
+        .populate('receiverId', 'name email profilePicture')
         .sort({ createdAt: 1 });
 
         // Mark messages as read
@@ -100,7 +130,8 @@ exports.getConversations = async (req, res) => {
             $or: [
                 { senderId: req.user.id },
                 { receiverId: req.user.id }
-            ]
+            ],
+            isDeleted: false
         })
         .populate('senderId', 'name email profilePicture')
         .populate('receiverId', 'name email profilePicture')
@@ -123,24 +154,31 @@ exports.getConversations = async (req, res) => {
                     lastMessage: {
                         content: msg.content,
                         createdAt: msg.createdAt,
-                        isRead: msg.isRead
+                        isRead: msg.isRead,
+                        senderId: msg.senderId._id
                     },
                     unreadCount: 0
                 });
             }
         });
 
-        // Calculate unread counts
+        // Calculate unread counts for each conversation
         const conversations = Array.from(conversationMap.values());
         
         for (const conv of conversations) {
             const unread = await Message.countDocuments({
                 senderId: conv.user._id,
                 receiverId: req.user.id,
-                isRead: false
+                isRead: false,
+                isDeleted: false
             });
             conv.unreadCount = unread;
         }
+
+        // Sort by latest message
+        conversations.sort((a, b) => {
+            return new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt);
+        });
 
         res.status(200).json({
             success: true,
@@ -152,6 +190,94 @@ exports.getConversations = async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Server error fetching conversations'
+        });
+    }
+};
+
+// @desc    Delete message (soft delete)
+// @route   DELETE /api/messages/:id
+// @access  Private
+exports.deleteMessage = async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        // Check if user is sender or receiver
+        if (message.senderId.toString() !== req.user.id && 
+            message.receiverId.toString() !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to delete this message'
+            });
+        }
+
+        // Soft delete based on who is deleting
+        if (message.senderId.toString() === req.user.id) {
+            message.deletedForSender = true;
+        } else {
+            message.deletedForReceiver = true;
+        }
+
+        // If both deleted, mark as fully deleted
+        if (message.deletedForSender && message.deletedForReceiver) {
+            message.isDeleted = true;
+        }
+
+        await message.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Message deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete message error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Mark message as read
+// @route   PUT /api/messages/:id/read
+// @access  Private
+exports.markMessageAsRead = async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        if (message.receiverId.toString() !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized'
+            });
+        }
+
+        message.isRead = true;
+        message.readAt = new Date();
+        await message.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Message marked as read'
+        });
+    } catch (error) {
+        console.error('Mark read error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
         });
     }
 };

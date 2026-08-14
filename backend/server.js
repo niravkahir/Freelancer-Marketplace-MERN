@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
     res.send('🚀 Freelancer Marketplace API is running...');
 });
 
-// ✅ All routes go HERE (before error handler)
+// Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/proposals', proposalRoutes);
@@ -41,7 +41,7 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/categories', categoryRoutes);
 
-// ✅ Error handler goes LAST (after all routes)
+// Error handler goes LAST
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
