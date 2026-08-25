@@ -62,7 +62,7 @@ const authorize = (...roles) => {
     };
 };
 
-// ✅ FIXED: Check if user is admin
+// Check if user is admin
 const isAdmin = (req, res, next) => {
     if (!req.user || req.user.role !== 'ADMIN') {
         return res.status(403).json({
@@ -73,7 +73,7 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-// ✅ FIXED: Check if user is client
+// Check if user is client
 const isClient = (req, res, next) => {
     if (!req.user || req.user.role !== 'CLIENT') {
         return res.status(403).json({
