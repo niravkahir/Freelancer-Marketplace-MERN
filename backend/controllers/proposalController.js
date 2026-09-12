@@ -152,6 +152,13 @@ exports.acceptProposal = async (req, res) => {
             });
         }
 
+        if (['Withdrawn', 'Rejected', 'Accepted'].includes(proposal.status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot accept a proposal that is already ${proposal.status}`
+            });
+        }
+
         const project = await Project.findById(proposal.projectId);
         
         // Check if client owns the project
@@ -197,6 +204,13 @@ exports.rejectProposal = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'Proposal not found'
+            });
+        }
+
+        if (['Withdrawn', 'Rejected', 'Accepted'].includes(proposal.status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot reject a proposal that is already ${proposal.status}`
             });
         }
 
@@ -249,10 +263,10 @@ exports.withdrawProposal = async (req, res) => {
             });
         }
 
-        if (proposal.status === 'Accepted') {
+        if (['Accepted', 'Rejected', 'Withdrawn'].includes(proposal.status)) {
             return res.status(400).json({
                 success: false,
-                message: 'Cannot withdraw an accepted proposal'
+                message: `Cannot withdraw a proposal that is already ${proposal.status}`
             });
         }
 

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Blacklist = require('../models/Blacklist');
 
 // Protect routes - verify JWT token
 const protect = async (req, res, next) => {
@@ -7,13 +8,21 @@ const protect = async (req, res, next) => {
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            // Get token from header
             token = req.headers.authorization.split(' ')[1];
+
+            // ✅ Check if token is blacklisted
+            const isBlacklisted = await Blacklist.findOne({ token });
+            if (isBlacklisted) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Token has been revoked. Please log in again.'
+                });
+            }
 
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            // Get user from token
+            // Get user
             req.user = await User.findById(decoded.id).select('-password');
 
             if (!req.user) {
@@ -23,11 +32,10 @@ const protect = async (req, res, next) => {
                 });
             }
 
-            // Check if user is blocked
             if (req.user.isBlocked) {
                 return res.status(403).json({
                     success: false,
-                    message: 'Your account has been blocked. Please contact support.'
+                    message: 'Your account has been blocked'
                 });
             }
 

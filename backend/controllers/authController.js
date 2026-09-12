@@ -1,5 +1,9 @@
 const User = require('../models/User');
+const FreelancerProfile = require('../models/FreelancerProfile');
+const ClientProfile = require('../models/ClientProfile');   
 const generateToken = require('../utils/generateToken');
+const Blacklist = require('../models/Blacklist');
+const jwt = require('jsonwebtoken');
 
 // @route   POST /api/auth/register
 exports.register = async (req, res) => {
@@ -36,6 +40,12 @@ exports.register = async (req, res) => {
         await user.save();
 
         // Generate token
+        if (user.role === 'FREELANCER') {
+            await FreelancerProfile.create({ userId: user._id });
+        } else if (user.role === 'CLIENT') {
+            await ClientProfile.create({ userId: user._id });
+        }
+
         const token = generateToken(user._id, user.role);
 
         res.status(201).json({
@@ -145,6 +155,36 @@ exports.getMe = async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Logout user (invalidate token)
+// @route   POST /api/auth/logout
+// @access  Private
+exports.logout = async (req, res) => {
+    try {
+        // Get token from header
+        const token = req.headers.authorization.split(' ')[1];
+        
+        // Decode to get expiry
+        const decoded = jwt.decode(token);
+
+        // Add token to blacklist
+        await Blacklist.create({
+            token,
+            expiresAt: new Date(decoded.exp * 1000) // JWT exp is in seconds
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Logged out successfully. Token revoked.'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error during logout'
         });
     }
 };

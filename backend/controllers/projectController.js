@@ -191,19 +191,19 @@ exports.deleteProject = async (req, res) => {
 // @access  Public
 exports.searchProjects = async (req, res) => {
     try {
-        const { keyword, category, minBudget, maxBudget } = req.query;
-        
-        const filter = { status: 'Open' };
-        
+        const { keyword, category, minBudget, maxBudget, status } = req.query;
+
+        const filter = {};
+
         if (keyword) {
             filter.$or = [
                 { title: { $regex: keyword, $options: 'i' } },
                 { description: { $regex: keyword, $options: 'i' } },
-                { skillsRequired: { $regex: keyword, $options: 'i' } }
+                { skillsRequired: { $in: [new RegExp(keyword, 'i')] } }
             ];
         }
-        
         if (category) filter.category = category;
+        if (status) filter.status = status;
         if (minBudget) filter.budget = { $gte: parseInt(minBudget) };
         if (maxBudget) filter.budget = { ...filter.budget, $lte: parseInt(maxBudget) };
 
@@ -217,10 +217,6 @@ exports.searchProjects = async (req, res) => {
             projects
         });
     } catch (error) {
-        console.error('Search projects error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error searching projects'
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
