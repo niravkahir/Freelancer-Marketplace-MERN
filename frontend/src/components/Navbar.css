@@ -1,0 +1,100 @@
+.navbar {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.2rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.brand-icon {
+  color: var(--gold);
+  font-size: 1.4rem;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.navbar-links a {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+
+.navbar-links a:hover {
+  color: var(--gold);
+}
+
+.navbar-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-outline,
+.btn-solid {
+  padding: 0.55rem 1.4rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.btn-outline {
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  background: transparent;
+}
+
+.btn-outline:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.btn-solid {
+  background: var(--gold);
+  color: var(--bg-primary);
+  font-weight: 600;
+}
+
+.btn-solid:hover {
+  background: var(--gold-light);
+}
+
+.navbar-user {
+  color: var(--gold);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .navbar-links { display: none; }
+}

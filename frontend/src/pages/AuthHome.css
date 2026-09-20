@@ -1,0 +1,49 @@
+.auth-home { max-width: 1100px; margin: 0 auto; padding: 4rem 2rem; }
+
+.auth-home-hero { text-align: center; margin-bottom: 4rem; }
+
+.auth-home-eyebrow {
+  display: flex; align-items: center; justify-content: center;
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+
+.auth-home-eyebrow .line { width: 60px; height: 1px; background: var(--gold); opacity: 0.5; }
+
+.auth-home-eyebrow .text {
+  color: var(--gold); font-size: 0.72rem; letter-spacing: 0.25em;
+}
+
+.auth-home-hero h1 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  margin-bottom: 1rem;
+}
+
+.auth-home-sub { color: var(--text-muted); font-style: italic; }
+
+.auth-home-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.dash-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2rem 1.8rem;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.dash-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-4px);
+}
+
+.dash-card h3 {
+  font-size: 1.1rem;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+}
+
+.dash-card p { color: var(--text-muted); font-size: 0.88rem; }

@@ -1,27 +1,41 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import './Navbar.css';
 
 const Navbar = () => {
-    const { user, logout, isAuthenticated } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
 
-    return (
-        <nav>
-            <div className="nav-brand">Freelancer Marketplace</div>
-            <div className="nav-links">
-                {isAuthenticated ? (
-                    <>
-                        <span>Welcome, {user?.name}</span>
-                        <button onClick={logout}>Logout</button>
-                    </>
-                ) : (
-                    <>
-                        <a href="/login">Login</a>
-                        <a href="/register">Register</a>
-                    </>
-                )}
-            </div>
-        </nav>
-    );
+  const handleLogout = async () => {
+    await logout();
+    // No navigate, no window.location
+    // ProtectedRoute will auto-redirect when user becomes null
+  };
+
+  return (
+    <nav className="navbar">
+      <div className="navbar-container">
+        <Link to="/" className="navbar-brand">
+          <span className="brand-icon">◈</span>
+          <span className="brand-text">FREELANCER MARKETPLACE</span>
+        </Link>
+
+        <div className="navbar-actions">
+          {isAuthenticated ? (
+            <>
+              <span className="navbar-user">Hi, {user?.name?.split(' ')[0]}</span>
+              <Link to="/dashboard" className="btn-outline">Dashboard</Link>
+              <button onClick={handleLogout} className="btn-solid">Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn-outline">Login</Link>
+              <Link to="/register" className="btn-solid">Get Started</Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
 };
 
 export default Navbar;

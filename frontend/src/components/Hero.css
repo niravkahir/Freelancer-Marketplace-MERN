@@ -1,0 +1,132 @@
+.hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 6rem 2rem 5rem;
+  text-align: center;
+}
+
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.hero-eyebrow .line {
+  width: 60px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+}
+
+.hero-eyebrow .text {
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  font-weight: 500;
+}
+
+.hero-title {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin-bottom: 1.8rem;
+  letter-spacing: 0.02em;
+}
+
+.hero-subtitle {
+  max-width: 720px;
+  margin: 0 auto 2.5rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.8;
+  font-style: italic;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 4.5rem;
+}
+
+.hero-btn-primary,
+.hero-btn-secondary {
+  padding: 1rem 2rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 2px;
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.hero-btn-primary {
+  background: var(--gold);
+  color: var(--bg-primary);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+}
+
+.hero-btn-primary:hover {
+  background: var(--gold-light);
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.5);
+  transform: translateY(-2px);
+}
+
+.hero-btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.hero-btn-secondary:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  max-width: 900px;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stat-card {
+  padding: 2rem 1.5rem;
+  border-right: 1px solid var(--border);
+  transition: background 0.3s;
+}
+
+.stat-card:last-child { border-right: none; }
+
+.stat-card:hover { background: var(--bg-card); }
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+  font-weight: 400;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .stat-card:nth-child(2) { border-right: none; }
+  .stat-card:nth-child(1),
+  .stat-card:nth-child(2) { border-bottom: 1px solid var(--border); }
+}
