@@ -1,14 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
-    // No navigate, no window.location
-    // ProtectedRoute will auto-redirect when user becomes null
+    navigate('/');
   };
 
   return (
@@ -24,6 +24,7 @@ const Navbar = () => {
             <>
               <span className="navbar-user">Hi, {user?.name?.split(' ')[0]}</span>
               <Link to="/dashboard" className="btn-outline">Dashboard</Link>
+              <Link to="/profile" className="btn-outline">Profile</Link>
               <button onClick={handleLogout} className="btn-solid">Logout</button>
             </>
           ) : (

@@ -1,4 +1,5 @@
 const Payment = require('../models/Payment');
+const FreelancerProfile = require('../models/FreelancerProfile');
 
 exports.createPayment = async (req, res) => {
     try {
@@ -69,13 +70,27 @@ exports.updatePaymentStatus = async (req, res) => {
     try {
         const { status, transactionId } = req.body;
         const payment = await Payment.findById(req.params.id);
+
         if (!payment) {
             return res.status(404).json({ success: false, message: 'Payment not found' });
         }
+
+        const wasCompleted = payment.status === 'COMPLETED';
+
         payment.status = status || payment.status;
         if (transactionId) payment.transactionId = transactionId;
-        if (status === 'COMPLETED') payment.completionDate = new Date();
+        if (status === 'COMPLETED' && !wasCompleted) {
+            payment.completionDate = new Date();
+        }
+
         await payment.save();
+        if (status === 'COMPLETED' && !wasCompleted) {
+            await FreelancerProfile.findOneAndUpdate(
+                { userId: payment.freelancerId },
+                { $inc: { totalEarnings: payment.amount } }
+            );
+        }
+
         res.status(200).json({
             success: true,
             message: 'Payment status updated successfully',
