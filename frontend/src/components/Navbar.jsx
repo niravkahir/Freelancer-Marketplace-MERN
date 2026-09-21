@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isClient } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -18,6 +18,13 @@ const Navbar = () => {
           <span className="brand-icon">◈</span>
           <span className="brand-text">FREELANCER MARKETPLACE</span>
         </Link>
+
+        <ul className="navbar-links">
+          <li><Link to="/projects">Explore</Link></li>
+          {isAuthenticated && isClient && (
+            <li><Link to="/projects/create">Post Project</Link></li>
+          )}
+        </ul>
 
         <div className="navbar-actions">
           {isAuthenticated ? (

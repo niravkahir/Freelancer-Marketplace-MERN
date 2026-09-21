@@ -1,0 +1,125 @@
+.projects-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.projects-header h1 {
+  font-size: 1.8rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.4rem;
+}
+
+.projects-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--bg-primary);
+  padding: 0.7rem 1.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 3px;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  background: var(--gold-light);
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+}
+
+/* Search */
+.projects-search {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 0.8rem;
+  margin-bottom: 3rem;
+  padding: 1.2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.projects-search input,
+.projects-search select {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 3px;
+  font-family: inherit;
+}
+
+.projects-search input:focus,
+.projects-search select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.btn-search {
+  background: var(--gold);
+  color: var(--bg-primary);
+  padding: 0.7rem 1.8rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 3px;
+  transition: all 0.3s;
+}
+
+.btn-search:hover {
+  background: var(--gold-light);
+}
+
+/* Sections */
+.my-projects-section,
+.all-projects-section {
+  margin-bottom: 3rem;
+}
+
+.section-heading {
+  font-size: 0.78rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.projects-state {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.projects-state.error { color: #ff6b6b; }
+
+@media (max-width: 700px) {
+  .projects-search { grid-template-columns: 1fr; }
+}

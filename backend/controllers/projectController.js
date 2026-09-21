@@ -18,6 +18,13 @@ exports.createProject = async (req, res) => {
             deadline
         } = req.body;
 
+        if (new Date(deadline) < new Date()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Deadline must be a future date'
+            });
+        }
+
         // Validate required fields
         if (!title || !description || !budget || !category || !skillsRequired || !deadline) {
             return res.status(400).json({

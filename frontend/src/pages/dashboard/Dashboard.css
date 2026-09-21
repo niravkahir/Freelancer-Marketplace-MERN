@@ -47,3 +47,27 @@
 }
 
 .dash-card p { color: var(--text-muted); font-size: 0.88rem; }
+
+/* Card button */
+.dash-card-btn {
+  margin-top: 1rem;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: 0.6rem 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 3px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.dash-card-btn:hover {
+  background: var(--gold);
+  color: var(--bg-primary);
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}

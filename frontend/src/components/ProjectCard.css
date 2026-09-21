@@ -1,0 +1,110 @@
+.project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+
+.project-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-4px);
+}
+
+.project-card:hover::before { transform: scaleX(1); }
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.project-status {
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+}
+
+.project-category { color: var(--text-muted); }
+
+.project-title {
+  font-size: 1.15rem;
+  font-family: var(--font-serif);
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+.project-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.project-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.skill-chip {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--gold);
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 2px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.skill-chip.more { color: var(--text-muted); border-color: var(--border); }
+
+.project-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+.project-budget {
+  font-family: var(--font-serif);
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+
+.project-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.project-client {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
