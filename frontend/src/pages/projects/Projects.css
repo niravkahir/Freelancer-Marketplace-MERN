@@ -45,13 +45,14 @@
 /* Search */
 .projects-search {
   display: grid;
-  grid-template-columns: 2fr 1fr auto;
-  gap: 0.8rem;
+  grid-template-columns: 2fr 1fr 0.7fr 0.7fr 1fr auto auto;
+  gap: 0.7rem;
   margin-bottom: 3rem;
   padding: 1.2rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 5px;
+  align-items: center;
 }
 
 .projects-search input,
@@ -59,10 +60,11 @@
   background: var(--bg-primary);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  padding: 0.7rem 1rem;
-  font-size: 0.9rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.88rem;
   border-radius: 3px;
   font-family: inherit;
+  width: 100%;
 }
 
 .projects-search input:focus,
@@ -74,18 +76,32 @@
 .btn-search {
   background: var(--gold);
   color: var(--bg-primary);
-  padding: 0.7rem 1.8rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 600;
   border-radius: 3px;
   transition: all 0.3s;
+  white-space: nowrap;
 }
 
-.btn-search:hover {
-  background: var(--gold-light);
+.btn-search:hover { background: var(--gold-light); }
+
+.btn-clear {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.65rem 1.2rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  transition: all 0.3s;
+  white-space: nowrap;
 }
+
+.btn-clear:hover { border-color: var(--gold); color: var(--gold); }
 
 /* Sections */
 .my-projects-section,
@@ -105,9 +121,10 @@
   margin-bottom: 1.5rem;
 }
 
+/* ✅ 3 cards per row — square look */
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
 }
 
@@ -120,6 +137,13 @@
 
 .projects-state.error { color: #ff6b6b; }
 
-@media (max-width: 700px) {
+/* Responsive */
+@media (max-width: 1000px) {
+  .projects-grid { grid-template-columns: repeat(2, 1fr); }
+  .projects-search { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 650px) {
+  .projects-grid { grid-template-columns: 1fr; }
   .projects-search { grid-template-columns: 1fr; }
 }
