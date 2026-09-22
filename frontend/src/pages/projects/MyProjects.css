@@ -1,0 +1,127 @@
+.mp-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.mp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.mp-header h1 {
+  font-size: 1.8rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.4rem;
+}
+
+.mp-header p {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--bg-primary);
+  padding: 0.7rem 1.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary:hover { background: var(--gold-light); }
+
+.mp-state {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.mp-state a { color: var(--gold); }
+
+.mp-list { display: grid; gap: 1.2rem; }
+
+.mp-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1.5rem;
+  transition: border-color 0.3s;
+}
+
+.mp-card:hover { border-color: rgba(212, 175, 55, 0.4); }
+
+.mp-card-top {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  flex-wrap: wrap;
+}
+
+.mp-status {
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+}
+
+.mp-expired {
+  color: #ff6b6b;
+  border: 1px solid rgba(220, 50, 50, 0.5);
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+}
+
+.mp-category { color: var(--text-muted); }
+
+.mp-card h3 {
+  font-size: 1.2rem;
+  font-family: var(--font-serif);
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+}
+
+.mp-meta {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 1.2rem;
+}
+
+.mp-actions {
+  display: flex;
+  gap: 0.7rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.6rem 1.2rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }

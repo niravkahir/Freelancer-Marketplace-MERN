@@ -3,7 +3,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import EditProject from './pages/projects/EditProject';
-
+import MyProjects from './pages/projects/MyProjects';
 import Home from './pages/common/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -13,6 +13,8 @@ import EditProfile from './pages/profile/EditProfile';
 import Projects from './pages/projects/Projects';
 import CreateProject from './pages/projects/CreateProject';
 import ProjectDetail from './pages/projects/ProjectDetail';
+import MyProposals from './pages/proposals/MyProposals';
+import ProjectProposals from './pages/proposals/ProjectProposals';
 
 import './App.css';
 
@@ -43,12 +45,33 @@ function App() {
               <CreateProject />
             </ProtectedRoute>
           } />
+          <Route path="/projects/my" element={
+    <ProtectedRoute allowedRoles={['CLIENT']}>
+      <MyProjects />
+    </ProtectedRoute>
+  }
+/>
+
           <Route
           path="/projects/:id/edit" element={
             <ProtectedRoute allowedRoles={['CLIENT']}>
               <EditProject />
             </ProtectedRoute>
           } />
+         <Route path="/proposals/my" element={
+    <ProtectedRoute allowedRoles={['FREELANCER']}>
+      <MyProposals />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/projects/:projectId/proposals"
+  element={
+    <ProtectedRoute allowedRoles={['CLIENT', 'ADMIN']}>
+      <ProjectProposals />
+    </ProtectedRoute>
+  }
+/> 
         </Routes>
       </main>
       <Footer />

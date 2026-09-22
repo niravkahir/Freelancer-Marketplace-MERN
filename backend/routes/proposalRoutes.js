@@ -6,6 +6,7 @@ const {
     getMyProposals,
     acceptProposal,
     rejectProposal,
+    updateProposal, 
     withdrawProposal
 } = require('../controllers/proposalController');
 const { protect, isFreelancer } = require('../middleware/auth');
@@ -17,5 +18,6 @@ router.get('/project/:projectId', protect, getProjectProposals);
 router.put('/:id/accept', protect, acceptProposal);
 router.put('/:id/reject', protect, rejectProposal);
 router.put('/:id/withdraw', protect, isFreelancer, withdrawProposal);
+router.put('/:id', protect, isFreelancer, updateProposal); 
 
 module.exports = router;

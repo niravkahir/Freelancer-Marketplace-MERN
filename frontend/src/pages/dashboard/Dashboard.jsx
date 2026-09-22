@@ -7,32 +7,32 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Client cards
-  const clientCards = [
-    {
-      title: 'My Projects',
-      desc: 'View and manage your posted projects',
-      btn: 'View Projects',
-      path: '/projects',
-    },
-    {
-      title: 'Post a Project',
-      desc: 'Describe your needs and hire talent',
-      btn: 'Post Now',
-      path: '/projects/create',
-    },
-    {
-      title: 'Proposals',
-      desc: 'Review freelancer applications',
-      btn: 'Review',
-      path: '/proposals',           // future route
-    },
-    {
-      title: 'Messages',
-      desc: 'Chat with freelancers',
-      btn: 'Open Inbox',
-      path: '/messages',            // future route
-    },
-  ];
+ const clientCards = [
+  {
+    title: 'My Projects',
+    desc: 'View and manage your posted projects',
+    btn: 'View Projects',
+    path: '/projects/my',        // ✅ fixed
+  },
+  {
+    title: 'Post a Project',
+    desc: 'Describe your needs and hire talent',
+    btn: 'Post Now',
+    path: '/projects/create',
+  },
+  {
+    title: 'Proposals',
+    desc: 'Review freelancer applications',
+    btn: 'Review',
+    path: '/projects/my',        // ✅ fixed — same page
+  },
+  {
+    title: 'Messages',
+    desc: 'Chat with freelancers',
+    btn: 'Open Inbox',
+    path: '/messages',
+  },
+];
 
   // Freelancer cards
   const freelancerCards = [
@@ -96,7 +96,7 @@ const Dashboard = () => {
     ? freelancerCards
     : adminCards;
 
-  return (
+   return (
     <div className="auth-home">
       <section className="auth-home-hero">
         <div className="auth-home-eyebrow">

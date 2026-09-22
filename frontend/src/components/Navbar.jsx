@@ -19,12 +19,15 @@ const Navbar = () => {
           <span className="brand-text">FREELANCER MARKETPLACE</span>
         </Link>
 
-        <ul className="navbar-links">
-          <li><Link to="/projects">Explore</Link></li>
-          {isAuthenticated && isClient && (
-            <li><Link to="/projects/create">Post Project</Link></li>
-          )}
-        </ul>
+      <ul className="navbar-links">
+  <li><Link to="/projects">Explore</Link></li>
+  {isAuthenticated && isClient && (
+    <>
+      <li><Link to="/projects/my">My Projects</Link></li>
+      <li><Link to="/projects/create">Post Project</Link></li>
+    </>
+  )}
+</ul>
 
         <div className="navbar-actions">
           {isAuthenticated ? (

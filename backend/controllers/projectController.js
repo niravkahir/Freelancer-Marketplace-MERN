@@ -91,7 +91,16 @@ exports.getAllProjects = async (req, res) => {
 // @access  Public
 exports.getProjectById = async (req, res) => {
     try {
-        const project = await Project.findOne({ projectId: req.params.id })
+        const { id } = req.params;
+
+        let query;
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            query = { _id: id };              // ObjectId
+        } else {
+            query = { projectId: Number(id) }; // Numeric
+        }
+
+        const project = await Project.findOne(query)
             .populate('clientId', 'name email phone');
 
         if (!project) {
@@ -101,15 +110,11 @@ exports.getProjectById = async (req, res) => {
             });
         }
 
-        res.status(200).json({
-            success: true,
-            project
-        });
+        res.status(200).json({ success: true, project });
     } catch (error) {
-        console.error('Get project error:', error);
         res.status(500).json({
             success: false,
-            message: error.message || 'Server error fetching project'
+            message: error.message || 'Server error'
         });
     }
 };

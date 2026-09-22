@@ -124,18 +124,25 @@ const ProjectDetail = () => {
 
         {/* Right — Sidebar */}
         <div className="pd-sidebar">
-          {isOwner && (
-            <div className="pd-card pd-owner">
-              <h3>YOUR PROJECT</h3>
-              <p>You posted this project.</p>
-              <button
-                className="btn-primary"
-                onClick={() => navigate(`/projects/${project.projectId}/edit`)}
-              >
-                Edit Project
-              </button>
-            </div>
-          )}
+        {isOwner && (
+  <div className="pd-card pd-owner">
+    <h3>YOUR PROJECT</h3>
+    <p>You posted this project.</p>
+    <button
+      className="btn-primary"
+      onClick={() => navigate(`/projects/${project._id}/proposals`)}
+    >
+      View Proposals ({project.proposalsCount || 0})
+    </button>
+    <button
+      className="btn-secondary"
+      onClick={() => navigate(`/projects/${project.projectId}/edit`)}
+      style={{ marginTop: '0.5rem' }}
+    >
+      Edit Project
+    </button>
+  </div>
+)}
 
           {!isAuthenticated && (
             <div className="pd-card">

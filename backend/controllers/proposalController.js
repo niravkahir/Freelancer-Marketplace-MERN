@@ -286,3 +286,41 @@ exports.withdrawProposal = async (req, res) => {
         });
     }
 };
+// @desc    Update proposal (freelancer only, while Pending)
+// @route   PUT /api/proposals/:id
+// @access  Private (Freelancer)
+exports.updateProposal = async (req, res) => {
+    try {
+        const { coverLetter, bidAmount, estimatedTime } = req.body;
+        const proposal = await Proposal.findById(req.params.id);
+
+        if (!proposal) {
+            return res.status(404).json({ success: false, message: 'Proposal not found' });
+        }
+
+        if (proposal.freelancerId.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Not authorized' });
+        }
+
+        if (proposal.status !== 'Pending' && proposal.status !== 'Interviewing') {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot edit a proposal that is ${proposal.status}`
+            });
+        }
+
+        if (coverLetter) proposal.coverLetter = coverLetter;
+        if (bidAmount !== undefined) proposal.bidAmount = bidAmount;
+        if (estimatedTime !== undefined) proposal.estimatedTime = estimatedTime;
+
+        await proposal.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Proposal updated successfully',
+            proposal
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
