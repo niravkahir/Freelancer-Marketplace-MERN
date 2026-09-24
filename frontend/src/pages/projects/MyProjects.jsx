@@ -43,13 +43,16 @@ const MyProjects = () => {
         <div className="mp-list">
           {projects.map((p) => {
             const isExpired = new Date(p.deadline) < new Date();
+            const canEdit = p.status === 'Open' && !isExpired;
+
             return (
               <div key={p._id} className="mp-card">
                 <div className="mp-card-top">
                   <span className="mp-status">{p.status}</span>
                   {isExpired && <span className="mp-expired">EXPIRED</span>}
-                  <span className="mp-category">{p.category}</span>
                 </div>
+
+                <span className="mp-category">{p.category}</span>
 
                 <h3>{p.title}</h3>
 
@@ -62,21 +65,26 @@ const MyProjects = () => {
                 </div>
 
                 <div className="mp-actions">
+                  {/* ✅ Use _id everywhere */}
                   <button
                     className="btn-primary"
                     onClick={() => navigate(`/projects/${p._id}/proposals`)}
                   >
                     View Proposals ({p.proposalsCount || 0})
                   </button>
+
+                  {canEdit && (
+                    <button
+                      className="btn-outline"
+                      onClick={() => navigate(`/projects/${p._id}/edit`)}
+                    >
+                      Edit
+                    </button>
+                  )}
+
                   <button
                     className="btn-outline"
-                    onClick={() => navigate(`/projects/${p.projectId}/edit`)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn-outline"
-                    onClick={() => navigate(`/projects/${p.projectId}`)}
+                    onClick={() => navigate(`/projects/${p._id}`)}
                   >
                     View Public
                   </button>

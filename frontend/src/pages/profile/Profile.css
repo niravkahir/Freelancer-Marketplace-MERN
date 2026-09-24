@@ -183,6 +183,52 @@
 
 .portfolio-item a:hover { text-decoration: underline; }
 
+.up-footer,
+.profile-page .btn-back {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn-back {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: 0.6rem 1.2rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-back:hover {
+  background: var(--gold);
+  color: var(--bg-primary);
+  border-color: var(--gold);
+}
+
+.btn-back {
+  margin-top: 2rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: 0.6rem 1.2rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-back:hover {
+  background: var(--gold);
+  color: var(--bg-primary);
+  border-color: var(--gold);
+}
+
 @media (max-width: 600px) {
   .profile-header { flex-direction: column; text-align: center; }
   .profile-meta { justify-content: center; }

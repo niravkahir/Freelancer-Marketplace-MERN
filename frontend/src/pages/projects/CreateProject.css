@@ -119,3 +119,18 @@
   color: var(--text-muted);
   font-style: italic;
 }
+
+.create-project-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.create-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}

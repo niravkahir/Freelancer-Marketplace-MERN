@@ -59,17 +59,26 @@
 .pp-card-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1.2rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
+/* Freelancer clickable block */
 .pp-freelancer {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
+
+.pp-freelancer-link {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.3s;
+}
+
+.pp-freelancer-link:hover { opacity: 0.85; }
 
 .pp-avatar {
   width: 48px;
@@ -96,6 +105,19 @@
   color: var(--text-muted);
 }
 
+.pp-view-profile {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.pp-freelancer-link:hover .pp-view-profile {
+  text-decoration: underline;
+}
+
+/* Status badges */
 .status-badge {
   padding: 0.25rem 0.7rem;
   border-radius: 2px;
@@ -111,6 +133,35 @@
 .status-withdrawn { color: var(--text-muted); border-color: var(--border); }
 .status-interviewing { color: #60a5fa; border-color: rgba(96, 165, 250, 0.5); }
 
+/* Result banners */
+.pp-result {
+  padding: 0.7rem 1rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.pp-result-accepted {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+}
+
+.pp-result-rejected {
+  background: rgba(220, 50, 50, 0.08);
+  border: 1px solid rgba(220, 50, 50, 0.3);
+  color: #ff6b6b;
+}
+
+.pp-result-withdrawn {
+  background: rgba(160, 160, 160, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* Bid info */
 .pp-bid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -136,6 +187,7 @@
   font-size: 1.2rem;
 }
 
+/* Cover letter */
 .pp-cover h4 {
   font-size: 0.72rem;
   letter-spacing: 0.15em;
@@ -151,6 +203,7 @@
   white-space: pre-wrap;
 }
 
+/* Action buttons */
 .pp-actions {
   display: flex;
   gap: 0.8rem;
@@ -186,3 +239,98 @@
 }
 
 .btn-reject:hover { background: rgba(220, 50, 50, 0.2); }
+
+/* Custom Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.2);
+}
+
+.modal h2 {
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 1rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.modal-body {
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.modal-body strong { color: var(--gold); }
+
+.modal-warn {
+  display: block;
+  margin-top: 0.7rem;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: flex-end;
+}
+
+.modal-actions .btn-cancel,
+.modal-actions .btn-save,
+.btn-danger-solid {
+  padding: 0.7rem 1.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.modal-actions .btn-cancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.modal-actions .btn-cancel:hover { border-color: var(--gold); color: var(--gold); }
+
+.modal-actions .btn-save {
+  background: var(--gold);
+  color: var(--bg-primary);
+}
+
+.modal-actions .btn-save:hover:not(:disabled) { background: var(--gold-light); }
+
+.btn-danger-solid {
+  background: rgba(220, 50, 50, 0.9);
+  color: #fff;
+}
+
+.btn-danger-solid:hover:not(:disabled) { background: rgba(220, 50, 50, 1); }
+
+.modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }

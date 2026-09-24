@@ -144,12 +144,9 @@ exports.getMyProposals = async (req, res) => {
 exports.acceptProposal = async (req, res) => {
     try {
         const proposal = await Proposal.findById(req.params.id);
-        
+
         if (!proposal) {
-            return res.status(404).json({
-                success: false,
-                message: 'Proposal not found'
-            });
+            return res.status(404).json({ success: false, message: 'Proposal not found' });
         }
 
         if (['Withdrawn', 'Rejected', 'Accepted'].includes(proposal.status)) {
@@ -160,18 +157,24 @@ exports.acceptProposal = async (req, res) => {
         }
 
         const project = await Project.findById(proposal.projectId);
-        
-        // Check if client owns the project
+
         if (project.clientId.toString() !== req.user.id && req.user.role !== 'ADMIN') {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to accept this proposal'
-            });
+            return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        // Update proposal status
+        // ✅ Accept this one
         proposal.status = 'Accepted';
         await proposal.save();
+
+        // ✅ Auto-reject all OTHER pending proposals for this project
+        await Proposal.updateMany(
+            {
+                projectId: proposal.projectId,
+                _id: { $ne: proposal._id },
+                status: { $in: ['Pending', 'Interviewing'] },
+            },
+            { status: 'Rejected' }
+        );
 
         // Update project
         project.status = 'In Progress';
@@ -181,17 +184,13 @@ exports.acceptProposal = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Proposal accepted successfully',
+            message: 'Proposal accepted. Other proposals auto-rejected.',
             proposal
         });
     } catch (error) {
-        console.error('Accept proposal error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error accepting proposal'
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
-};
+};  
 
 // @desc    Reject proposal
 // @route   PUT /api/proposals/:id/reject

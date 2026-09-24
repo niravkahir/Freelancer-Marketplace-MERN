@@ -12,8 +12,8 @@ const ProjectDetail = () => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [myProposal, setMyProposal] = useState(null);
 
-  // Proposal form
   const [proposal, setProposal] = useState({
     coverLetter: '',
     bidAmount: '',
@@ -28,6 +28,16 @@ const ProjectDetail = () => {
       try {
         const { data } = await api.get(`/projects/${id}`);
         setProject(data.project);
+
+        if (isFreelancer) {
+          try {
+            const myRes = await api.get('/proposals/my');
+            const mine = (myRes.data.proposals || []).find(
+              (p) => p.projectId?._id === data.project._id
+            );
+            if (mine) setMyProposal(mine);
+          } catch (e) {}
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Project not found');
       } finally {
@@ -35,7 +45,7 @@ const ProjectDetail = () => {
       }
     };
     load();
-  }, [id]);
+  }, [id, isFreelancer]);
 
   const handleProposalChange = (e) =>
     setProposal({ ...proposal, [e.target.name]: e.target.value });
@@ -54,11 +64,15 @@ const ProjectDetail = () => {
         estimatedTime: Number(proposal.estimatedTime),
       });
       setProposalMsg('Proposal submitted successfully!');
+
+      const myRes = await api.get('/proposals/my');
+      const mine = (myRes.data.proposals || []).find(
+        (p) => p.projectId?._id === project._id
+      );
+      if (mine) setMyProposal(mine);
       setProposal({ coverLetter: '', bidAmount: '', estimatedTime: '' });
     } catch (err) {
-      setProposalErr(
-        err.response?.data?.message || 'Failed to submit proposal'
-      );
+      setProposalErr(err.response?.data?.message || 'Failed to submit proposal');
     } finally {
       setSubmitting(false);
     }
@@ -68,14 +82,13 @@ const ProjectDetail = () => {
   if (error) return <div className="pd-state error">{error}</div>;
   if (!project) return null;
 
-  const isOwner = user?.id === project.clientId?._id;
+  const isOwner = user?.id === project.clientId?._id || user?._id === project.clientId?._id;
   const isExpired = new Date(project.deadline) < new Date();
   const canApply =
-    isFreelancer && !isOwner && project.status === 'Open' && !isExpired;
+    isFreelancer && !isOwner && project.status === 'Open' && !isExpired && !myProposal;
 
   return (
     <div className="pd-page">
-      {/* Header */}
       <div className="pd-header">
         <div className="pd-header-top">
           <span className="pd-status">{project.status}</span>
@@ -93,7 +106,6 @@ const ProjectDetail = () => {
       </div>
 
       <div className="pd-grid">
-        {/* Left — Description */}
         <div className="pd-main">
           <div className="pd-card">
             <h3>PROJECT DESCRIPTION</h3>
@@ -115,42 +127,47 @@ const ProjectDetail = () => {
             <p><strong>Project Type:</strong> {project.projectType}</p>
             <p><strong>Sub-Category:</strong> {project.subCategory || '—'}</p>
             <p><strong>Proposals:</strong> {project.proposalsCount || 0}</p>
-            <p>
-              <strong>Posted:</strong>{' '}
-              {new Date(project.createdAt).toLocaleDateString()}
-            </p>
+            <p><strong>Posted:</strong> {new Date(project.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
 
-        {/* Right — Sidebar */}
         <div className="pd-sidebar">
-        {isOwner && (
-  <div className="pd-card pd-owner">
-    <h3>YOUR PROJECT</h3>
-    <p>You posted this project.</p>
-    <button
-      className="btn-primary"
-      onClick={() => navigate(`/projects/${project._id}/proposals`)}
-    >
-      View Proposals ({project.proposalsCount || 0})
-    </button>
-    <button
-      className="btn-secondary"
-      onClick={() => navigate(`/projects/${project.projectId}/edit`)}
-      style={{ marginTop: '0.5rem' }}
-    >
-      Edit Project
-    </button>
-  </div>
-)}
+          {isOwner && (
+            <div className="pd-card pd-owner">
+              <h3>YOUR PROJECT</h3>
+              <p>You posted this project.</p>
+
+              <button
+                className="btn-primary"
+                onClick={() => navigate(`/projects/${project._id}/proposals`)}
+              >
+                View Proposals ({project.proposalsCount || 0})
+              </button>
+
+              {project.status === 'Open' && !isExpired && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => navigate(`/projects/${project._id}/edit`)}   // ✅ changed
+                  style={{ marginTop: '0.5rem' }}
+                >
+                  Edit Project
+                </button>
+              )}
+            </div>
+          )}
+
+          {isOwner && project.status === 'In Progress' && (
+            <div className="pd-card">
+              <h3>PROJECT IN PROGRESS</h3>
+              <p>You've hired a freelancer. Edit is disabled while the project is active.</p>
+            </div>
+          )}
 
           {!isAuthenticated && (
             <div className="pd-card">
               <h3>WANT TO APPLY?</h3>
               <p>Log in as a freelancer to submit a proposal.</p>
-              <button className="btn-primary" onClick={() => navigate('/login')}>
-                Login
-              </button>
+              <button className="btn-primary" onClick={() => navigate('/login')}>Login</button>
             </div>
           )}
 
@@ -158,6 +175,42 @@ const ProjectDetail = () => {
             <div className="pd-card">
               <h3>CLIENT ACCOUNT</h3>
               <p>Only freelancers can apply to projects.</p>
+            </div>
+          )}
+
+          {myProposal && (
+            <div className="pd-card">
+              <h3>YOUR PROPOSAL STATUS</h3>
+
+              <div className={`pd-status-badge pd-status-${myProposal.status.toLowerCase()}`}>
+                {myProposal.status === 'Accepted' && '✓ ACCEPTED'}
+                {myProposal.status === 'Rejected' && '✕ REJECTED'}
+                {myProposal.status === 'Pending' && '⏳ PENDING'}
+                {myProposal.status === 'Withdrawn' && '— WITHDRAWN'}
+                {myProposal.status === 'Interviewing' && '💬 INTERVIEWING'}
+              </div>
+
+              <p className="pd-status-msg">
+                {myProposal.status === 'Accepted' &&
+                  '🎉 Congratulations! You were hired for this project.'}
+                {myProposal.status === 'Rejected' &&
+                  'This proposal was rejected by the client.'}
+                {myProposal.status === 'Pending' &&
+                  'Your proposal is being reviewed by the client.'}
+                {myProposal.status === 'Withdrawn' &&
+                  'You withdrew this proposal.'}
+                {myProposal.status === 'Interviewing' &&
+                  'The client is interested and reviewing your proposal.'}
+              </p>
+
+              <div className="pd-proposal-details">
+                <p><strong>Bid:</strong> ₹{myProposal.bidAmount?.toLocaleString()}</p>
+                <p><strong>Delivery:</strong> {myProposal.estimatedTime} days</p>
+              </div>
+
+              <button className="btn-primary" onClick={() => navigate('/proposals/my')}>
+                View My Proposal
+              </button>
             </div>
           )}
 
@@ -177,7 +230,6 @@ const ProjectDetail = () => {
                     value={proposal.coverLetter}
                     onChange={handleProposalChange}
                     required
-                    placeholder="Explain why you're a great fit..."
                   />
                 </div>
                 <div className="form-group">
@@ -189,7 +241,6 @@ const ProjectDetail = () => {
                     value={proposal.bidAmount}
                     onChange={handleProposalChange}
                     required
-                    placeholder="45000"
                   />
                 </div>
                 <div className="form-group">
@@ -201,7 +252,6 @@ const ProjectDetail = () => {
                     value={proposal.estimatedTime}
                     onChange={handleProposalChange}
                     required
-                    placeholder="30"
                   />
                 </div>
                 <button type="submit" className="btn-save" disabled={submitting}>
@@ -211,14 +261,14 @@ const ProjectDetail = () => {
             </div>
           )}
 
-          {isFreelancer && isExpired && (
+          {isFreelancer && !myProposal && isExpired && (
             <div className="pd-card">
               <h3>PROJECT EXPIRED</h3>
               <p>This project's deadline has passed. No new proposals accepted.</p>
             </div>
           )}
 
-          {isFreelancer && !isExpired && project.status !== 'Open' && (
+          {isFreelancer && !myProposal && !isExpired && project.status !== 'Open' && (
             <div className="pd-card">
               <h3>NOT ACCEPTING PROPOSALS</h3>
               <p>This project is currently {project.status.toLowerCase()}.</p>

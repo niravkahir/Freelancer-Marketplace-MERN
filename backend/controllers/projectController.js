@@ -1,5 +1,6 @@
 const Project = require('../models/Project');
 const User = require('../models/User');
+const ClientProfile = require('../models/ClientProfile');
 
 // @desc    Create a new project
 // @route   POST /api/projects
@@ -18,6 +19,13 @@ exports.createProject = async (req, res) => {
             deadline
         } = req.body;
 
+        if (!title || !description || !budget || !category || !skillsRequired || !deadline) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide all required fields'
+            });
+        }
+
         if (new Date(deadline) < new Date()) {
             return res.status(400).json({
                 success: false,
@@ -25,15 +33,6 @@ exports.createProject = async (req, res) => {
             });
         }
 
-        // Validate required fields
-        if (!title || !description || !budget || !category || !skillsRequired || !deadline) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please provide all required fields: title, description, budget, category, skillsRequired, deadline'
-            });
-        }
-
-        // Create project
         const project = await Project.create({
             clientId: req.user.id,
             title,
@@ -47,6 +46,22 @@ exports.createProject = async (req, res) => {
             deadline,
             status: 'Open'
         });
+
+        // ✅ UPDATE CLIENT PROFILE STATS
+        const allProjects = await Project.find({ clientId: req.user.id });
+        const totalBudget = allProjects.reduce((sum, p) => sum + (p.budget || 0), 0);
+        const avgBudget = allProjects.length > 0 
+            ? Math.round(totalBudget / allProjects.length) 
+            : 0;
+
+        await ClientProfile.findOneAndUpdate(
+            { userId: req.user.id },
+            {
+                totalProjectsPosted: allProjects.length,
+                averageBudget: avgBudget
+            },
+            { upsert: true, new: true }
+        );
 
         res.status(201).json({
             success: true,
@@ -93,12 +108,22 @@ exports.getProjectById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        let query;
-        if (id.match(/^[0-9a-fA-F]{24}$/)) {
-            query = { _id: id };              // ObjectId
-        } else {
-            query = { projectId: Number(id) }; // Numeric
+        console.log('Fetching project with ID:', id, 'Length:', id.length);
+
+        // Check if it's a valid 24-char hex ObjectId
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+        const isNumber = /^\d+$/.test(id);
+
+        if (!isObjectId && !isNumber) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid project ID: "${id}" (length ${id.length}). Must be 24-char ObjectId or number.`
+            });
         }
+
+        const query = isObjectId
+            ? { _id: id }
+            : { projectId: Number(id) };
 
         const project = await Project.findOne(query)
             .populate('clientId', 'name email phone');
@@ -112,9 +137,10 @@ exports.getProjectById = async (req, res) => {
 
         res.status(200).json({ success: true, project });
     } catch (error) {
+        console.error('getProjectById error:', error);
         res.status(500).json({
             success: false,
-            message: error.message || 'Server error'
+            message: error.message
         });
     }
 };

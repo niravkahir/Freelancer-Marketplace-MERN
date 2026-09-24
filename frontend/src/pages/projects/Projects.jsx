@@ -83,6 +83,12 @@ const Projects = () => {
     setTimeout(fetchProjects, 0);
   };
 
+  // ✅ Filter out client's own projects from "Other Projects"
+  const myProjectIds = new Set(myProjects.map((p) => p._id));
+  const otherProjects = isClient
+    ? projects.filter((p) => !myProjectIds.has(p._id))
+    : projects;
+
   return (
     <div className="projects-page">
       {/* Header */}
@@ -147,7 +153,9 @@ const Projects = () => {
       {/* My Projects (Client only) */}
       {isClient && myProjects.length > 0 && (
         <section className="my-projects-section">
-          <h2 className="section-heading">MY PROJECTS</h2>
+          <h2 className="section-heading">
+            MY PROJECTS ({myProjects.length})
+          </h2>
           <div className="projects-grid">
             {myProjects.map((p) => (
               <ProjectCard key={p._id} project={p} />
@@ -156,24 +164,26 @@ const Projects = () => {
         </section>
       )}
 
-      {/* All Projects */}
+      {/* Other / All Projects */}
       <section className="all-projects-section">
         <h2 className="section-heading">
-          {isClient ? 'OTHER PROJECTS' : 'ALL PROJECTS'} ({projects.length})
+          {isClient ? 'OTHER PROJECTS' : 'ALL PROJECTS'} ({otherProjects.length})
         </h2>
 
         {loading && <div className="projects-state">Loading...</div>}
         {error && <div className="projects-state error">{error}</div>}
 
-        {!loading && !error && projects.length === 0 && (
+        {!loading && !error && otherProjects.length === 0 && (
           <div className="projects-state">
-            No projects found. Try changing filters.
+            {isClient
+              ? 'No other projects from clients yet.'
+              : 'No projects found. Try changing filters.'}
           </div>
         )}
 
-        {!loading && !error && projects.length > 0 && (
+        {!loading && !error && otherProjects.length > 0 && (
           <div className="projects-grid">
-            {projects.map((p) => (
+            {otherProjects.map((p) => (
               <ProjectCard key={p._id} project={p} />
             ))}
           </div>

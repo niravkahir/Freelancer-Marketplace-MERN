@@ -124,7 +124,6 @@ exports.updateProfile = async (req, res) => {
 // @access  Private (Client only)
 exports.getMyProjects = async (req, res) => {
     try {
-        // Check if user is client
         if (req.user.role !== 'CLIENT') {
             return res.status(403).json({
                 success: false,
@@ -142,11 +141,7 @@ exports.getMyProjects = async (req, res) => {
             projects
         });
     } catch (error) {
-        console.error('Get my projects error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -181,5 +176,42 @@ exports.getActiveProjects = async (req, res) => {
             success: false,
             message: error.message || 'Server error'
         });
+    }
+};
+
+// @desc    Get another user's public profile
+// @route   GET /api/users/:id/profile
+// @access  Public
+exports.getPublicProfile = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findById(id).select('-password -resetPasswordToken -resetPasswordExpire');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        let profile = null;
+        if (user.role === 'FREELANCER') {
+            profile = await FreelancerProfile.findOne({ userId: user._id });
+        } else if (user.role === 'CLIENT') {
+            profile = await ClientProfile.findOne({ userId: user._id });
+        }
+
+        res.status(200).json({
+            success: true,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                role: user.role,
+                profilePicture: user.profilePicture,
+                createdAt: user.createdAt,
+            },
+            profile,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };

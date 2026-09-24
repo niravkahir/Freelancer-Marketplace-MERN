@@ -20,8 +20,11 @@ const ProjectCard = ({ project }) => {
     (new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24)
   );
 
+  // ✅ Use _id everywhere — always exists
+  const targetId = _id || projectId;
+
   return (
-    <Link to={`/projects/${projectId}`} className="project-card">
+    <Link to={`/projects/${targetId}`} className="project-card">
       <div className="project-card-header">
         <span className="project-status">{status}</span>
         <span className="project-category">{category}</span>

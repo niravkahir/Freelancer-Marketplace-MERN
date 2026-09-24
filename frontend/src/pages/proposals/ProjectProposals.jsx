@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import './ProjectProposals.css';
 
 const ProjectProposals = () => {
-  const { projectId } = useParams();   // this is ObjectId of project
+  const { projectId } = useParams();
   const navigate = useNavigate();
 
   const [project, setProject] = useState(null);
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [action, setAction] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const load = async () => {
     try {
@@ -27,44 +30,41 @@ const ProjectProposals = () => {
     }
   };
 
-  useEffect(() => {
-    load();
-  }, [projectId]);
+  useEffect(() => { load(); }, [projectId]);
 
-  const handleAccept = async (id) => {
-    if (!window.confirm('Accept this proposal? Other proposals will remain.')) return;
+  const confirmAction = async () => {
+    if (!action) return;
+    setActionLoading(true);
     try {
-      await api.put(`/proposals/${id}/accept`);
+      await api.put(`/proposals/${action.proposalId}/${action.type}`);
+      setAction(null);
       load();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to accept');
-    }
-  };
-
-  const handleReject = async (id) => {
-    if (!window.confirm('Reject this proposal?')) return;
-    try {
-      await api.put(`/proposals/${id}/reject`);
-      load();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to reject');
+      alert(err.response?.data?.message || 'Failed');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   if (loading) return <div className="pp-state">Loading...</div>;
   if (error) return <div className="pp-state error">{error}</div>;
 
+  const goBack = () => {
+    if (project?.projectId) {
+      navigate(`/projects/${project._id}`);
+    } else {
+      navigate('/projects/my');
+    }
+  };
+
   return (
     <div className="pp-page">
       <div className="pp-header">
-        <button className="btn-back" onClick={() => navigate(`/projects/${project?.projectId}`)}>
+        <button className="btn-back" onClick={goBack}>
           ← Back to Project
         </button>
         <h1>PROPOSALS</h1>
-        <p>
-          {project?.title} · {proposals.length} application
-          {proposals.length !== 1 ? 's' : ''}
-        </p>
+        <p>{project?.title} · {proposals.length} application{proposals.length !== 1 ? 's' : ''}</p>
       </div>
 
       {proposals.length === 0 ? (
@@ -73,16 +73,37 @@ const ProjectProposals = () => {
         <div className="pp-list">
           {proposals.map((p) => (
             <div key={p._id} className="pp-card">
+              {/* ✅ RESULT BANNER — put at TOP of card */}
+              {p.status === 'Accepted' && (
+                <div className="pp-result pp-result-accepted">
+                  ✓ You accepted this proposal. This freelancer has been hired.
+                </div>
+              )}
+              {p.status === 'Rejected' && (
+                <div className="pp-result pp-result-rejected">
+                  ✕ This proposal was rejected.
+                </div>
+              )}
+              {p.status === 'Withdrawn' && (
+                <div className="pp-result pp-result-withdrawn">
+                  — Freelancer withdrew this proposal.
+                </div>
+              )}
+
               <div className="pp-card-top">
-                <div className="pp-freelancer">
+                <Link
+                  to={`/users/${p.freelancerId?._id}`}
+                  className="pp-freelancer pp-freelancer-link"
+                >
                   <div className="pp-avatar">
                     {p.freelancerId?.name?.charAt(0).toUpperCase() || '?'}
                   </div>
                   <div>
                     <h3>{p.freelancerId?.name || 'Unknown'}</h3>
                     <p>{p.freelancerId?.email}</p>
+                    <span className="pp-view-profile">View Profile →</span>
                   </div>
-                </div>
+                </Link>
                 <span className={`status-badge status-${p.status.toLowerCase()}`}>
                   {p.status}
                 </span>
@@ -106,16 +127,60 @@ const ProjectProposals = () => {
 
               {p.status === 'Pending' && (
                 <div className="pp-actions">
-                  <button className="btn-accept" onClick={() => handleAccept(p._id)}>
+                  <button
+                    className="btn-accept"
+                    onClick={() => setAction({ type: 'accept', proposalId: p._id, name: p.freelancerId?.name })}
+                  >
                     ✓ Accept
                   </button>
-                  <button className="btn-reject" onClick={() => handleReject(p._id)}>
+                  <button
+                    className="btn-reject"
+                    onClick={() => setAction({ type: 'reject', proposalId: p._id, name: p.freelancerId?.name })}
+                  >
                     ✕ Reject
                   </button>
                 </div>
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal */}
+      {action && (
+        <div className="modal-overlay" onClick={() => !actionLoading && setAction(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>{action.type === 'accept' ? 'ACCEPT PROPOSAL?' : 'REJECT PROPOSAL?'}</h2>
+            <p className="modal-body">
+              {action.type === 'accept' ? (
+                <>
+                  Accept <strong>{action.name}</strong>'s proposal?
+                  <br />
+                  <span className="modal-warn">
+                    All other pending proposals for this project will be automatically rejected.
+                  </span>
+                </>
+              ) : (
+                <>Reject <strong>{action.name}</strong>'s proposal?</>
+              )}
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => setAction(null)}
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={action.type === 'accept' ? 'btn-save' : 'btn-danger-solid'}
+                onClick={confirmAction}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Processing...' : action.type === 'accept' ? 'Yes, Accept' : 'Yes, Reject'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

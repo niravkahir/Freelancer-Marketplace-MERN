@@ -8,7 +8,6 @@ const MyProposals = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Edit modal
   const [editing, setEditing] = useState(null);
   const [editForm, setEditForm] = useState({
     coverLetter: '',
@@ -28,9 +27,7 @@ const MyProposals = () => {
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   const openEdit = (p) => {
     setEditing(p);
@@ -97,6 +94,23 @@ const MyProposals = () => {
 
               <h3>{p.projectId?.title || 'Project removed'}</h3>
 
+              {/* ✅ Result banner */}
+              {p.status === 'Accepted' && (
+                <div className="proposal-result proposal-result-accepted">
+                  🎉 Congratulations! Your proposal has been accepted.
+                </div>
+              )}
+              {p.status === 'Rejected' && (
+                <div className="proposal-result proposal-result-rejected">
+                  ✕ Your proposal was rejected by the client.
+                </div>
+              )}
+              {p.status === 'Withdrawn' && (
+                <div className="proposal-result proposal-result-withdrawn">
+                  — You withdrew this proposal.
+                </div>
+              )}
+
               <div className="proposal-info">
                 <p><strong>Bid:</strong> ₹{p.bidAmount?.toLocaleString()}</p>
                 <p><strong>Days:</strong> {p.estimatedTime}</p>
@@ -110,10 +124,7 @@ const MyProposals = () => {
 
               <div className="proposal-actions">
                 {p.projectId && (
-                  <Link
-                    to={`/projects/${p.projectId.projectId}`}
-                    className="btn-outline"
-                  >
+                  <Link to={`/projects/${p.projectId._id}`} className="btn-outline">
                     View Project
                   </Link>
                 )}
@@ -123,10 +134,7 @@ const MyProposals = () => {
                     <button className="btn-outline" onClick={() => openEdit(p)}>
                       Edit
                     </button>
-                    <button
-                      className="btn-danger"
-                      onClick={() => handleWithdraw(p._id)}
-                    >
+                    <button className="btn-danger" onClick={() => handleWithdraw(p._id)}>
                       Withdraw
                     </button>
                   </>
@@ -148,9 +156,7 @@ const MyProposals = () => {
                 <textarea
                   rows="5"
                   value={editForm.coverLetter}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, coverLetter: e.target.value })
-                  }
+                  onChange={(e) => setEditForm({ ...editForm, coverLetter: e.target.value })}
                   required
                 />
               </div>
@@ -159,9 +165,7 @@ const MyProposals = () => {
                 <input
                   type="number"
                   value={editForm.bidAmount}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, bidAmount: e.target.value })
-                  }
+                  onChange={(e) => setEditForm({ ...editForm, bidAmount: e.target.value })}
                   required
                 />
               </div>
@@ -170,18 +174,12 @@ const MyProposals = () => {
                 <input
                   type="number"
                   value={editForm.estimatedTime}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, estimatedTime: e.target.value })
-                  }
+                  onChange={(e) => setEditForm({ ...editForm, estimatedTime: e.target.value })}
                   required
                 />
               </div>
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-cancel"
-                  onClick={() => setEditing(null)}
-                >
+                <button type="button" className="btn-cancel" onClick={() => setEditing(null)}>
                   Cancel
                 </button>
                 <button type="submit" className="btn-save" disabled={saving}>
