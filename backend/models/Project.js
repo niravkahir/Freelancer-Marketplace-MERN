@@ -38,8 +38,7 @@ const projectSchema = new mongoose.Schema({
     },
     skillsRequired: [{
         type: String,
-        trim: true,
-        required: [true, 'Please add at least one required skill']
+        trim: true
     }],
     experienceLevel: {
         type: String,
@@ -78,33 +77,27 @@ const projectSchema = new mongoose.Schema({
         ref: 'User',
         default: null
     },
-    startDate: {
-        type: Date
-    },
-    completionDate: {
-        type: Date
-    },
+    startDate: Date,
+    completionDate: Date,
     isFeatured: {
         type: Boolean,
         default: false
-    }
-}, {
-    timestamps: true
-});
+    },
 
-// Indexes for better search performance
+    chatLocked: {
+        type: Boolean,
+        default: false
+    }
+
+}, { timestamps: true });
+
 projectSchema.index({ title: 'text', description: 'text' });
 projectSchema.index({ category: 1 });
 projectSchema.index({ status: 1 });
 projectSchema.index({ budget: 1 });
-projectSchema.index({ skillsRequired: 1 });
 
-// Auto-increment projectId
 projectSchema.pre('save', async function(next) {
-    if (!this.isNew) {
-        return next();
-    }
-    
+    if (!this.isNew) return next();
     try {
         const lastProject = await this.constructor.findOne({}, {}, { sort: { 'projectId': -1 } });
         this.projectId = lastProject && lastProject.projectId ? lastProject.projectId + 1 : 101;

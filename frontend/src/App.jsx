@@ -20,6 +20,9 @@ import MyProjects from './pages/projects/MyProjects';
 import MyProposals from './pages/proposals/MyProposals';
 import ProjectProposals from './pages/proposals/ProjectProposals';
 
+import Inbox from './pages/messages/Inbox';
+import Chat from './pages/messages/Chat';
+
 import './App.css';
 
 function App() {
@@ -28,12 +31,12 @@ function App() {
       <Navbar />
       <main className="main-content">
         <Routes>
-          {/* ---------- Public ---------- */}
+          {/* Public */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* ---------- Projects (order matters!) ---------- */}
+          {/* Projects */}
           <Route path="/projects" element={<Projects />} />
 
           <Route
@@ -54,7 +57,6 @@ function App() {
             }
           />
 
-          {/* ⚠️ More specific route before /projects/:id */}
           <Route
             path="/projects/:projectId/proposals"
             element={
@@ -73,23 +75,38 @@ function App() {
             }
           />
 
-          {/* ⚠️ This must come LAST among /projects/* routes */}
           <Route path="/projects/:id" element={<ProjectDetail />} />
 
-          {/* ---------- User ---------- */}
+          {/* User */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-
-          {/* Public user profile */}
           <Route path="/users/:id" element={<UserProfile />} />
 
-          {/* ---------- Proposals ---------- */}
+          {/* Proposals */}
           <Route
             path="/proposals/my"
             element={
               <ProtectedRoute allowedRoles={['FREELANCER']}>
                 <MyProposals />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅ Messages */}
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <Inbox />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages/:id"
+            element={
+              <ProtectedRoute>
+                <Chat />
               </ProtectedRoute>
             }
           />

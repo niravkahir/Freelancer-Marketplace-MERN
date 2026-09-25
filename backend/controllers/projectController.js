@@ -1,6 +1,8 @@
 const Project = require('../models/Project');
 const User = require('../models/User');
 const ClientProfile = require('../models/ClientProfile');
+const Conversation = require('../models/Conversation');
+const Payment = require('../models/Payment');
 
 // @desc    Create a new project
 // @route   POST /api/projects
@@ -253,6 +255,56 @@ exports.searchProjects = async (req, res) => {
             success: true,
             count: projects.length,
             projects
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Mark project as completed
+// @route   PUT /api/projects/:id/complete
+// @access  Private (Client owner)
+exports.markProjectCompleted = async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.id);
+
+        if (!project) {
+            return res.status(404).json({ success: false, message: 'Project not found' });
+        }
+
+        if (project.clientId.toString() !== req.user.id && req.user.role !== 'ADMIN') {
+            return res.status(403).json({ success: false, message: 'Not authorized' });
+        }
+
+        project.status = 'Completed';
+        project.completionDate = new Date();
+        await project.save();
+
+        // ✅ If payment is already completed → lock chat
+        const payment = await Payment.findOne({
+            projectId: project._id,
+            status: 'COMPLETED'
+        });
+
+        if (payment) {
+            project.chatLocked = true;
+            await project.save();
+
+            await Conversation.findOneAndUpdate(
+                { relatedProject: project._id },
+                {
+                    isLocked: true,
+                    lockedBy: req.user.id,
+                    lockedAt: new Date(),
+                    lockReason: 'PROJECT_COMPLETED'
+                }
+            );
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Project marked as completed',
+            project
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

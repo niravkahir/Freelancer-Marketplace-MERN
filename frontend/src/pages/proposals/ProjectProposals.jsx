@@ -46,11 +46,24 @@ const ProjectProposals = () => {
     }
   };
 
+  // ✅ Open chat with freelancer
+  const openChat = async (freelancerId) => {
+    try {
+      const { data } = await api.post('/conversations', {
+        otherUserId: freelancerId,
+        projectId: project._id,
+      });
+      navigate(`/messages/${data.conversation._id}`);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to open chat');
+    }
+  };
+
   if (loading) return <div className="pp-state">Loading...</div>;
   if (error) return <div className="pp-state error">{error}</div>;
 
   const goBack = () => {
-    if (project?.projectId) {
+    if (project?._id) {
       navigate(`/projects/${project._id}`);
     } else {
       navigate('/projects/my');
@@ -73,7 +86,6 @@ const ProjectProposals = () => {
         <div className="pp-list">
           {proposals.map((p) => (
             <div key={p._id} className="pp-card">
-              {/* ✅ RESULT BANNER — put at TOP of card */}
               {p.status === 'Accepted' && (
                 <div className="pp-result pp-result-accepted">
                   ✓ You accepted this proposal. This freelancer has been hired.
@@ -139,6 +151,13 @@ const ProjectProposals = () => {
                   >
                     ✕ Reject
                   </button>
+                  {/* ✅ Message button */}
+                  <button
+                    className="btn-outline"
+                    onClick={() => openChat(p.freelancerId._id)}
+                  >
+                    💬 Message
+                  </button>
                 </div>
               )}
             </div>
@@ -146,7 +165,6 @@ const ProjectProposals = () => {
         </div>
       )}
 
-      {/* Modal */}
       {action && (
         <div className="modal-overlay" onClick={() => !actionLoading && setAction(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>

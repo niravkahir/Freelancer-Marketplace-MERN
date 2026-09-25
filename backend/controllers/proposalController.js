@@ -1,5 +1,6 @@
 const Proposal = require('../models/Proposal');
 const Project = require('../models/Project');
+const Conversation = require('../models/Conversation');
 
 // @desc    Submit proposal
 // @route   POST /api/proposals
@@ -60,6 +61,21 @@ exports.submitProposal = async (req, res) => {
             $inc: { proposalsCount: 1 }
         });
 
+        // ✅ Create PRE_HIRE conversation (if not already exists)
+        const existingConv = await Conversation.findOne({
+            participants: { $all: [project.clientId, req.user.id] },
+            relatedProject: project._id
+        });
+
+        if (!existingConv) {
+            await Conversation.create({
+                participants: [project.clientId, req.user.id],
+                relatedProject: project._id,
+                chatMode: 'PRE_HIRE',
+                isLocked: false
+            });
+        }
+
         res.status(201).json({
             success: true,
             message: 'Proposal submitted successfully',
@@ -81,7 +97,7 @@ exports.submitProposal = async (req, res) => {
 exports.getProjectProposals = async (req, res) => {
     try {
         const project = await Project.findById(req.params.projectId);
-        
+
         if (!project) {
             return res.status(404).json({
                 success: false,
@@ -180,7 +196,30 @@ exports.acceptProposal = async (req, res) => {
         project.status = 'In Progress';
         project.awardedTo = proposal.freelancerId;
         project.startDate = new Date();
+        project.chatLocked = false;
         await project.save();
+
+        // ✅ Upgrade conversation to POST_HIRE
+        let conversation = await Conversation.findOne({
+            participants: { $all: [project.clientId, proposal.freelancerId] },
+            relatedProject: project._id
+        });
+
+        if (conversation) {
+            conversation.chatMode = 'POST_HIRE';
+            conversation.isLocked = false;
+            conversation.lockedBy = null;
+            conversation.lockedAt = null;
+            conversation.lockReason = null;
+            await conversation.save();
+        } else {
+            await Conversation.create({
+                participants: [project.clientId, proposal.freelancerId],
+                relatedProject: project._id,
+                chatMode: 'POST_HIRE',
+                isLocked: false
+            });
+        }
 
         res.status(200).json({
             success: true,
@@ -188,9 +227,10 @@ exports.acceptProposal = async (req, res) => {
             proposal
         });
     } catch (error) {
+        console.error('Accept proposal error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
-};  
+};
 
 // @desc    Reject proposal
 // @route   PUT /api/proposals/:id/reject
@@ -198,7 +238,7 @@ exports.acceptProposal = async (req, res) => {
 exports.rejectProposal = async (req, res) => {
     try {
         const proposal = await Proposal.findById(req.params.id);
-        
+
         if (!proposal) {
             return res.status(404).json({
                 success: false,
@@ -214,7 +254,7 @@ exports.rejectProposal = async (req, res) => {
         }
 
         const project = await Project.findById(proposal.projectId);
-        
+
         // Check if client owns the project
         if (project.clientId.toString() !== req.user.id && req.user.role !== 'ADMIN') {
             return res.status(403).json({
@@ -246,7 +286,7 @@ exports.rejectProposal = async (req, res) => {
 exports.withdrawProposal = async (req, res) => {
     try {
         const proposal = await Proposal.findById(req.params.id);
-        
+
         if (!proposal) {
             return res.status(404).json({
                 success: false,
@@ -285,6 +325,7 @@ exports.withdrawProposal = async (req, res) => {
         });
     }
 };
+
 // @desc    Update proposal (freelancer only, while Pending)
 // @route   PUT /api/proposals/:id
 // @access  Private (Freelancer)

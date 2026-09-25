@@ -95,6 +95,24 @@
   margin-right: 0.5rem;
 }
 
+.nav-messages-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.nav-badge {
+  background: var(--gold);
+  color: var(--bg-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+  min-width: 18px;
+  text-align: center;
+}
+
 @media (max-width: 900px) {
   .navbar-links { display: none; }
 }

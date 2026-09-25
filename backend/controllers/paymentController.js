@@ -1,5 +1,7 @@
 const Payment = require('../models/Payment');
 const FreelancerProfile = require('../models/FreelancerProfile');
+const Conversation = require('../models/Conversation');
+const Project = require('../models/Project');
 
 exports.createPayment = async (req, res) => {
     try {
@@ -84,11 +86,29 @@ exports.updatePaymentStatus = async (req, res) => {
         }
 
         await payment.save();
+
         if (status === 'COMPLETED' && !wasCompleted) {
             await FreelancerProfile.findOneAndUpdate(
                 { userId: payment.freelancerId },
                 { $inc: { totalEarnings: payment.amount } }
             );
+
+            // ✅ Check if project is also completed → lock chat
+            const project = await Project.findById(payment.projectId);
+            if (project && project.status === 'Completed') {
+                project.chatLocked = true;
+                await project.save();
+
+                await Conversation.findOneAndUpdate(
+                    { relatedProject: project._id },
+                    {
+                        isLocked: true,
+                        lockedBy: req.user.id,
+                        lockedAt: new Date(),
+                        lockReason: 'PROJECT_COMPLETED'
+                    }
+                );
+            }
         }
 
         res.status(200).json({

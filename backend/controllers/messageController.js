@@ -1,283 +1,178 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
+const Conversation = require('../models/Conversation');
 const Notification = require('../models/Notification');
 
-// @desc    Send message
+// @desc    Send message (with restrictions)
 // @route   POST /api/messages
 // @access  Private
 exports.sendMessage = async (req, res) => {
     try {
-        const { receiverId, content } = req.body;
+        const { conversationId, content } = req.body;
 
-        if (!receiverId || !content) {
+        if (!conversationId || !content) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide receiverId and content'
+                message: 'Please provide conversationId and content'
             });
         }
 
-        // Check if receiver exists
-        const receiver = await User.findById(receiverId);
-        if (!receiver) {
-            return res.status(404).json({
+        const conversation = await Conversation.findById(conversationId)
+            .populate('participants', '_id name');
+
+        if (!conversation) {
+            return res.status(404).json({ success: false, message: 'Conversation not found' });
+        }
+
+        // Check participant
+        const isParticipant = conversation.participants.some(
+            (p) => p._id.toString() === req.user.id
+        );
+        if (!isParticipant) {
+            return res.status(403).json({ success: false, message: 'Not authorized' });
+        }
+
+        // ✅ RESTRICTION 1: Locked conversation
+        if (conversation.isLocked) {
+            return res.status(403).json({
                 success: false,
-                message: 'Receiver not found'
+                message: `This conversation is locked (${conversation.lockReason})`
             });
         }
+
+        // ✅ RESTRICTION 2: Pre-hire — freelancer cannot start
+        if (conversation.chatMode === 'PRE_HIRE' && req.user.role === 'FREELANCER') {
+            const messageCount = await Message.countDocuments({
+                conversationId: conversation._id
+            });
+            if (messageCount === 0) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Only the client can start this conversation'
+                });
+            }
+        }
+
+        // Other participant
+        const receiver = conversation.participants.find(
+            (p) => p._id.toString() !== req.user.id
+        );
 
         // Create message
         const message = await Message.create({
+            conversationId: conversation._id,
             senderId: req.user.id,
-            receiverId,
+            receiverId: receiver._id,
             content,
             isRead: false
         });
 
-        // Populate sender details
-        const populatedMessage = await Message.findById(message._id)
-            .populate('senderId', 'name email profilePicture')
-            .populate('receiverId', 'name email profilePicture');
+        // Update conversation.lastMessage + unread count
+        conversation.lastMessage = {
+            content,
+            senderId: req.user.id,
+            sentAt: new Date()
+        };
 
-        // ✅ CREATE NOTIFICATION FOR RECEIVER
+        const receiverUnread = conversation.unreadCounts.find(
+            (u) => u.userId.toString() === receiver._id.toString()
+        );
+        if (receiverUnread) {
+            receiverUnread.count += 1;
+        } else {
+            conversation.unreadCounts.push({
+                userId: receiver._id,
+                count: 1
+            });
+        }
+
+        await conversation.save();
+
+        // Populate message for response
+        const populatedMessage = await Message.findById(message._id)
+            .populate('senderId', 'name email profilePicture');
+
+        // ✅ Create notification for receiver
         await Notification.create({
-            userId: receiverId,
+            userId: receiver._id,
             type: 'MESSAGE_RECEIVED',
             title: 'New Message',
-            message: `${req.user.name} sent you a message: "${content.substring(0, 100)}${content.length > 100 ? '...' : ''}"`,
-            link: `/messages/${req.user.id}`,
+            message: `${req.user.name} sent you a message`,
+            link: `/messages/${conversation._id}`,
             relatedEntity: {
                 entityType: 'MESSAGE',
                 entityId: message._id
-            },
-            priority: 'HIGH'
+            }
         });
+
+        // ✅ Emit to BOTH receiver and sender (for cross-tab sync)
+        if (req.io) {
+            req.io.to(receiver._id.toString()).emit('receiveMessage', populatedMessage);
+            req.io.to(receiver._id.toString()).emit('refreshUnread');
+            req.io.to(req.user.id.toString()).emit('receiveMessage', populatedMessage);
+        }
 
         res.status(201).json({
             success: true,
-            message: 'Message sent successfully',
-            data: populatedMessage
+            message: populatedMessage
         });
     } catch (error) {
         console.error('Send message error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error sending message'
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// @desc    Get messages for a conversation
-// @route   GET /api/messages/:userId
+// @desc    Mark all messages in conversation as read
+// @route   PUT /api/messages/conversation/:id/read
 // @access  Private
-exports.getMessages = async (req, res) => {
+exports.markConversationRead = async (req, res) => {
     try {
-        const otherUserId = req.params.userId;
+        const conversation = await Conversation.findById(req.params.id);
 
-        // Check if other user exists
-        const otherUser = await User.findById(otherUserId);
-        if (!otherUser) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
+        if (!conversation) {
+            return res.status(404).json({ success: false, message: 'Conversation not found' });
         }
 
-        const messages = await Message.find({
-            $or: [
-                { senderId: req.user.id, receiverId: otherUserId },
-                { senderId: otherUserId, receiverId: req.user.id }
-            ],
-            isDeleted: false
-        })
-        .populate('senderId', 'name email profilePicture')
-        .populate('receiverId', 'name email profilePicture')
-        .sort({ createdAt: 1 });
+        if (!conversation.participants.some(p => p.toString() === req.user.id)) {
+            return res.status(403).json({ success: false, message: 'Not authorized' });
+        }
 
-        // Mark messages as read
         await Message.updateMany(
             {
-                senderId: otherUserId,
+                conversationId: conversation._id,
                 receiverId: req.user.id,
                 isRead: false
             },
-            {
-                isRead: true,
-                readAt: new Date()
-            }
+            { isRead: true, readAt: new Date() }
         );
 
-        res.status(200).json({
-            success: true,
-            count: messages.length,
-            messages
-        });
+        // Reset unread count for this user
+        const entry = conversation.unreadCounts.find(
+            (u) => u.userId.toString() === req.user.id
+        );
+        if (entry) {
+            entry.count = 0;
+            await conversation.save();
+        }
+
+        res.status(200).json({ success: true, message: 'Marked as read' });
     } catch (error) {
-        console.error('Get messages error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error fetching messages'
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// @desc    Get conversations list
-// @route   GET /api/messages/conversations
+// @desc    Get unread message count
+// @route   GET /api/messages/unread-count
 // @access  Private
-exports.getConversations = async (req, res) => {
+exports.getUnreadCount = async (req, res) => {
     try {
-        // Get all messages involving the user
-        const messages = await Message.find({
-            $or: [
-                { senderId: req.user.id },
-                { receiverId: req.user.id }
-            ],
-            isDeleted: false
-        })
-        .populate('senderId', 'name email profilePicture')
-        .populate('receiverId', 'name email profilePicture')
-        .sort({ createdAt: -1 });
-
-        // Get unique conversations
-        const conversationMap = new Map();
-        
-        messages.forEach(msg => {
-            const otherUser = msg.senderId._id.toString() === req.user.id 
-                ? msg.receiverId 
-                : msg.senderId;
-            
-            const key = otherUser._id.toString();
-            
-            if (!conversationMap.has(key) || 
-                conversationMap.get(key).lastMessage.createdAt < msg.createdAt) {
-                conversationMap.set(key, {
-                    user: otherUser,
-                    lastMessage: {
-                        content: msg.content,
-                        createdAt: msg.createdAt,
-                        isRead: msg.isRead,
-                        senderId: msg.senderId._id
-                    },
-                    unreadCount: 0
-                });
-            }
+        const count = await Message.countDocuments({
+            receiverId: req.user.id,
+            isRead: false
         });
 
-        // Calculate unread counts for each conversation
-        const conversations = Array.from(conversationMap.values());
-        
-        for (const conv of conversations) {
-            const unread = await Message.countDocuments({
-                senderId: conv.user._id,
-                receiverId: req.user.id,
-                isRead: false,
-                isDeleted: false
-            });
-            conv.unreadCount = unread;
-        }
-
-        // Sort by latest message
-        conversations.sort((a, b) => {
-            return new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt);
-        });
-
-        res.status(200).json({
-            success: true,
-            count: conversations.length,
-            conversations
-        });
+        res.status(200).json({ success: true, count });
     } catch (error) {
-        console.error('Get conversations error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error fetching conversations'
-        });
-    }
-};
-
-// @desc    Delete message (soft delete)
-// @route   DELETE /api/messages/:id
-// @access  Private
-exports.deleteMessage = async (req, res) => {
-    try {
-        const message = await Message.findById(req.params.id);
-
-        if (!message) {
-            return res.status(404).json({
-                success: false,
-                message: 'Message not found'
-            });
-        }
-
-        // Check if user is sender or receiver
-        if (message.senderId.toString() !== req.user.id && 
-            message.receiverId.toString() !== req.user.id) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to delete this message'
-            });
-        }
-
-        // Soft delete based on who is deleting
-        if (message.senderId.toString() === req.user.id) {
-            message.deletedForSender = true;
-        } else {
-            message.deletedForReceiver = true;
-        }
-
-        // If both deleted, mark as fully deleted
-        if (message.deletedForSender && message.deletedForReceiver) {
-            message.isDeleted = true;
-        }
-
-        await message.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Message deleted successfully'
-        });
-    } catch (error) {
-        console.error('Delete message error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
-
-// @desc    Mark message as read
-// @route   PUT /api/messages/:id/read
-// @access  Private
-exports.markMessageAsRead = async (req, res) => {
-    try {
-        const message = await Message.findById(req.params.id);
-
-        if (!message) {
-            return res.status(404).json({
-                success: false,
-                message: 'Message not found'
-            });
-        }
-
-        if (message.receiverId.toString() !== req.user.id) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized'
-            });
-        }
-
-        message.isRead = true;
-        message.readAt = new Date();
-        await message.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Message marked as read'
-        });
-    } catch (error) {
-        console.error('Mark read error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };

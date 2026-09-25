@@ -2,14 +2,13 @@ const express = require('express');
 const router = express.Router();
 const {
     sendMessage,
-    getMessages,
-    getConversations
+    markConversationRead,
+    getUnreadCount
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/auth');
 
-// ✅ All routes need authentication
 router.post('/', protect, sendMessage);
-router.get('/conversations', protect, getConversations);
-router.get('/:userId', protect, getMessages);
+router.get('/unread-count', protect, getUnreadCount);
+router.put('/conversation/:id/read', protect, markConversationRead);
 
 module.exports = router;

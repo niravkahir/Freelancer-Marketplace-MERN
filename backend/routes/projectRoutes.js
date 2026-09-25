@@ -6,7 +6,8 @@ const {
     getProjectById,
     updateProject,
     deleteProject,
-    searchProjects
+    searchProjects,
+    markProjectCompleted
 } = require('../controllers/projectController');
 const { protect, isClient } = require('../middleware/auth');
 
@@ -19,5 +20,7 @@ router.get('/:id', getProjectById);
 router.post('/', protect, isClient, createProject);
 router.put('/:id', protect, updateProject);
 router.delete('/:id', protect, deleteProject);
+
+router.put('/:id/complete', protect, isClient, markProjectCompleted);
 
 module.exports = router;
