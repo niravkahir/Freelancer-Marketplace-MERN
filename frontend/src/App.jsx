@@ -25,6 +25,10 @@ import Chat from './pages/messages/Chat';
 
 import Notifications from './pages/notifications/Notifications';
 
+import Contracts from './pages/contracts/Contracts';
+import ContractDetail from './pages/contracts/ContractDetail';
+import CreateContract from './pages/contracts/CreateContract';
+
 import './App.css';
 
 function App() {
@@ -120,6 +124,23 @@ function App() {
                 <Notifications />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/contracts"
+            element={<ProtectedRoute><Contracts /></ProtectedRoute>}
+          />
+          <Route
+            path="/contracts/create/:proposalId"
+            element={
+              <ProtectedRoute allowedRoles={['CLIENT']}>
+                <CreateContract />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contracts/:id"
+            element={<ProtectedRoute><ContractDetail /></ProtectedRoute>}
           />
         </Routes>
       </main>

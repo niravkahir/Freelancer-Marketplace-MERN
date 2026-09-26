@@ -26,7 +26,7 @@ const Notifications = () => {
 
   useEffect(() => { load(); }, []);
 
-  // ✅ Listen for new notifications in real-time
+  // ✅ Real-time new notifications
   useEffect(() => {
     if (!socket) return;
 
@@ -45,6 +45,11 @@ const Notifications = () => {
     };
   }, [socket]);
 
+  // ✅ On mount, tell navbar to refresh badge
+  useEffect(() => {
+    if (socket) socket.emit('refreshUnread');
+  }, [socket]);
+
   const handleClick = async (n) => {
     if (!n.isRead) {
       try {
@@ -53,6 +58,7 @@ const Notifications = () => {
           prev.map((x) => (x._id === n._id ? { ...x, isRead: true } : x))
         );
         setUnreadCount((c) => Math.max(0, c - 1));
+        if (socket) socket.emit('refreshUnread');
       } catch (e) {}
     }
     if (n.link) navigate(n.link);
@@ -63,6 +69,7 @@ const Notifications = () => {
       await api.put('/notifications/read-all');
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
+      if (socket) socket.emit('refreshUnread');
     } catch (e) {}
   };
 
@@ -71,6 +78,7 @@ const Notifications = () => {
     try {
       await api.delete(`/notifications/${id}`);
       setNotifications((prev) => prev.filter((n) => n._id !== id));
+      if (socket) socket.emit('refreshUnread');
     } catch (e) {}
   };
 
@@ -80,6 +88,7 @@ const Notifications = () => {
       await api.delete('/notifications/delete-all');
       setNotifications([]);
       setUnreadCount(0);
+      if (socket) socket.emit('refreshUnread');
     } catch (e) {}
   };
 
@@ -124,9 +133,8 @@ const Notifications = () => {
                 {n.type === 'PAYMENT_RECEIVED' && '💰'}
                 {n.type === 'PROJECT_COMPLETED' && '✅'}
                 {n.type === 'HIRING_COMPLETED' && '🤝'}
-                {!['PROPOSAL_SUBMITTED','PROPOSAL_ACCEPTED','PROPOSAL_REJECTED',
-                   'MESSAGE_RECEIVED','PAYMENT_RECEIVED','PROJECT_COMPLETED',
-                   'HIRING_COMPLETED'].includes(n.type) && '🔔'}
+                {n.type === 'CONTRACT_CREATED' && '📜'}
+                {n.type === 'CONTRACT_SIGNED' && '✍️'}
               </div>
               <div className="notif-body">
                 <div className="notif-top">

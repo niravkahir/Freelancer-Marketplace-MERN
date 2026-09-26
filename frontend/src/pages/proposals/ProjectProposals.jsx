@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+import { useSocket } from '../../contexts/SocketContext';
 import './ProjectProposals.css';
 
 const ProjectProposals = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const { socket } = useSocket();
 
   const [project, setProject] = useState(null);
   const [proposals, setProposals] = useState([]);
@@ -32,6 +34,23 @@ const ProjectProposals = () => {
 
   useEffect(() => { load(); }, [projectId]);
 
+  // ✅ Real-time updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const onProposalsChanged = async (data) => {
+      if (data.projectId?.toString() === projectId?.toString() || !data.projectId) {
+        await load();
+      }
+    };
+
+    socket.on('proposalsChanged', onProposalsChanged);
+
+    return () => {
+      socket.off('proposalsChanged', onProposalsChanged);
+    };
+  }, [socket, projectId]);
+
   const confirmAction = async () => {
     if (!action) return;
     setActionLoading(true);
@@ -46,7 +65,6 @@ const ProjectProposals = () => {
     }
   };
 
-  // ✅ Open chat with freelancer
   const openChat = async (freelancerId) => {
     try {
       const { data } = await api.post('/conversations', {
@@ -56,6 +74,23 @@ const ProjectProposals = () => {
       navigate(`/messages/${data.conversation._id}`);
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to open chat');
+    }
+  };
+
+  const openCreateContract = async (proposalId) => {
+    try {
+      const { data } = await api.get('/contracts');
+      const existing = (data.contracts || []).find(
+        (c) => c.proposalId === proposalId || c.proposalId?._id === proposalId
+      );
+
+      if (existing) {
+        navigate(`/contracts/${existing._id}`);
+      } else {
+        navigate(`/contracts/create/${proposalId}`);
+      }
+    } catch (err) {
+      navigate(`/contracts/create/${proposalId}`);
     }
   };
 
@@ -89,6 +124,13 @@ const ProjectProposals = () => {
               {p.status === 'Accepted' && (
                 <div className="pp-result pp-result-accepted">
                   ✓ You accepted this proposal. This freelancer has been hired.
+                  <button
+                    className="btn-primary"
+                    style={{ marginTop: '0.8rem', display: 'block', width: '100%' }}
+                    onClick={() => openCreateContract(p._id)}
+                  >
+                    📜 Create Contract
+                  </button>
                 </div>
               )}
               {p.status === 'Rejected' && (
@@ -151,7 +193,6 @@ const ProjectProposals = () => {
                   >
                     ✕ Reject
                   </button>
-                  {/* ✅ Message button */}
                   <button
                     className="btn-outline"
                     onClick={() => openChat(p.freelancerId._id)}

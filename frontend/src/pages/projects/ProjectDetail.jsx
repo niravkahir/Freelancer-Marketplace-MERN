@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSocket } from '../../contexts/SocketContext';
 import './ProjectDetail.css';
 
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, isClient, isFreelancer, user } = useAuth();
+  const { socket } = useSocket();
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,29 +25,63 @@ const ProjectDetail = () => {
   const [proposalMsg, setProposalMsg] = useState('');
   const [proposalErr, setProposalErr] = useState('');
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const { data } = await api.get(`/projects/${id}`);
-        setProject(data.project);
+  const load = async () => {
+    try {
+      const { data } = await api.get(`/projects/${id}`);
+      setProject(data.project);
 
-        if (isFreelancer) {
-          try {
-            const myRes = await api.get('/proposals/my');
-            const mine = (myRes.data.proposals || []).find(
-              (p) => p.projectId?._id === data.project._id
-            );
-            if (mine) setMyProposal(mine);
-          } catch (e) {}
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || 'Project not found');
-      } finally {
-        setLoading(false);
+      if (isFreelancer) {
+        try {
+          const myRes = await api.get('/proposals/my');
+          const mine = (myRes.data.proposals || []).find(
+            (p) => p.projectId?._id === data.project._id
+          );
+          if (mine) setMyProposal(mine);
+        } catch (e) {}
       }
-    };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Project not found');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     load();
   }, [id, isFreelancer]);
+
+  // ✅ Real-time updates
+  useEffect(() => {
+    if (!socket || !project) return;
+
+    const onChanged = async (data) => {
+      if (
+        data.projectId?.toString() === project._id?.toString() ||
+        !data.projectId
+      ) {
+        try {
+          const { data: fresh } = await api.get(`/projects/${id}`);
+          setProject(fresh.project);
+
+          if (isFreelancer) {
+            const myRes = await api.get('/proposals/my');
+            const mine = (myRes.data.proposals || []).find(
+              (p) => p.projectId?._id === fresh.project._id
+            );
+            setMyProposal(mine || null);
+          }
+        } catch (e) {}
+      }
+    };
+
+    socket.on('proposalsChanged', onChanged);
+    socket.on('projectChanged', onChanged);
+
+    return () => {
+      socket.off('proposalsChanged', onChanged);
+      socket.off('projectChanged', onChanged);
+    };
+  }, [socket, project, id, isFreelancer]);
 
   const handleProposalChange = (e) =>
     setProposal({ ...proposal, [e.target.name]: e.target.value });
@@ -147,7 +183,7 @@ const ProjectDetail = () => {
               {project.status === 'Open' && !isExpired && (
                 <button
                   className="btn-secondary"
-                  onClick={() => navigate(`/projects/${project._id}/edit`)}   // ✅ changed
+                  onClick={() => navigate(`/projects/${project._id}/edit`)}
                   style={{ marginTop: '0.5rem' }}
                 >
                   Edit Project
