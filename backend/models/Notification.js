@@ -24,7 +24,9 @@ const notificationSchema = new mongoose.Schema({
             'USER_BLOCKED',
             'USER_UNBLOCKED',
             'SYSTEM_UPDATE',
-            'PROJECT_DEADLINE_REMINDER'
+            'PROJECT_DEADLINE_REMINDER',
+            'CONTRACT_CREATED',
+            'CONTRACT_SIGNED'
         ],
         required: true
     },
@@ -54,7 +56,7 @@ const notificationSchema = new mongoose.Schema({
     relatedEntity: {
         entityType: {
             type: String,
-            enum: ['PROJECT', 'PROPOSAL', 'MESSAGE', 'PAYMENT', 'USER']
+            enum: ['PROJECT', 'PROPOSAL', 'MESSAGE', 'PAYMENT', 'USER', 'CONTRACT']
         },
         entityId: {
             type: mongoose.Schema.Types.ObjectId

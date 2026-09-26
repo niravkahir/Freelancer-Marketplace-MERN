@@ -4,13 +4,15 @@ const {
     createContract,
     getMyContracts,
     getContractById,
-    signContract
+    signContract,
+    completeContract
 } = require('../controllers/contractController');
-const { protect } = require('../middleware/auth');
+const { protect, isClient } = require('../middleware/auth');
 
-router.post('/', protect, createContract);
+router.post('/', protect, isClient, createContract);
 router.get('/', protect, getMyContracts);
 router.get('/:id', protect, getContractById);
 router.put('/:id/sign', protect, signContract);
+router.put('/:id/complete', protect, isClient, completeContract);
 
 module.exports = router;

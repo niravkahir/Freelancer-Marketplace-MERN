@@ -57,6 +57,7 @@ const socketHandler = (io) => {
         // ✅ NEW: ask navbar to refresh unread badge
         socket.on('refreshUnread', () => {
             io.to(userId).emit('refreshUnread');
+            io.to(userId).emit('newNotification');
         });
 
         // ---------- DISCONNECT ----------

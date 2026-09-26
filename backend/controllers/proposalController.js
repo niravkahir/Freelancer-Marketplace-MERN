@@ -54,7 +54,7 @@ exports.submitProposal = async (req, res) => {
             $inc: { proposalsCount: 1 }
         });
 
-        // ✅ Create PRE_HIRE conversation (if not already exists)
+        // ✅ Create PRE_HIRE conversation
         const existingConv = await Conversation.findOne({
             participants: { $all: [project.clientId, req.user.id] },
             relatedProject: project._id
@@ -69,7 +69,7 @@ exports.submitProposal = async (req, res) => {
             });
         }
 
-        // ✅ Notify client — new proposal
+        // ✅ Notify client + broadcast changes
         try {
             await Notification.create({
                 userId: project.clientId,
@@ -82,6 +82,12 @@ exports.submitProposal = async (req, res) => {
 
             if (req.io) {
                 req.io.to(project.clientId.toString()).emit('newNotification');
+                req.io.to(project.clientId.toString()).emit('proposalsChanged', {
+                    projectId: project._id
+                });
+                req.io.to(project.clientId.toString()).emit('projectChanged', {
+                    projectId: project._id
+                });
             }
         } catch (notifErr) {
             console.error('Notification error:', notifErr);
@@ -224,7 +230,7 @@ exports.acceptProposal = async (req, res) => {
             });
         }
 
-        // ✅ Notify freelancer — accepted
+        // ✅ Notify + broadcast
         try {
             await Notification.create({
                 userId: proposal.freelancerId,
@@ -237,6 +243,8 @@ exports.acceptProposal = async (req, res) => {
 
             if (req.io) {
                 req.io.to(proposal.freelancerId.toString()).emit('newNotification');
+                req.io.emit('proposalsChanged', { projectId: project._id });
+                req.io.emit('projectChanged', { projectId: project._id });
             }
         } catch (notifErr) {
             console.error('Notification error:', notifErr);
@@ -283,7 +291,6 @@ exports.rejectProposal = async (req, res) => {
         proposal.status = 'Rejected';
         await proposal.save();
 
-        // ✅ Notify freelancer — rejected
         try {
             await Notification.create({
                 userId: proposal.freelancerId,
@@ -296,6 +303,7 @@ exports.rejectProposal = async (req, res) => {
 
             if (req.io) {
                 req.io.to(proposal.freelancerId.toString()).emit('newNotification');
+                req.io.emit('proposalsChanged', { projectId: project._id });
             }
         } catch (notifErr) {
             console.error('Notification error:', notifErr);
@@ -342,6 +350,10 @@ exports.withdrawProposal = async (req, res) => {
 
         proposal.status = 'Withdrawn';
         await proposal.save();
+
+        if (req.io) {
+            req.io.emit('proposalsChanged', { projectId: proposal.projectId });
+        }
 
         res.status(200).json({
             success: true,

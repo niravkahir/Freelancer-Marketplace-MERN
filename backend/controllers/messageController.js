@@ -30,7 +30,6 @@ exports.sendMessage = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        // RESTRICTION 1: Locked conversation
         if (conversation.isLocked) {
             return res.status(403).json({
                 success: false,
@@ -38,7 +37,6 @@ exports.sendMessage = async (req, res) => {
             });
         }
 
-        // RESTRICTION 2: Pre-hire — freelancer cannot start
         if (conversation.chatMode === 'PRE_HIRE' && req.user.role === 'FREELANCER') {
             const messageCount = await Message.countDocuments({
                 conversationId: conversation._id
@@ -86,7 +84,7 @@ exports.sendMessage = async (req, res) => {
         const populatedMessage = await Message.findById(message._id)
             .populate('senderId', 'name email profilePicture');
 
-        // ✅ Emit to receiver + sender (no notification created)
+        // ✅ Emit to receiver + sender (NO notification created for messages)
         if (req.io) {
             req.io.to(receiver._id.toString()).emit('receiveMessage', populatedMessage);
             req.io.to(receiver._id.toString()).emit('refreshUnread');
