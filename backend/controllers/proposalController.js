@@ -1,6 +1,7 @@
 const Proposal = require('../models/Proposal');
 const Project = require('../models/Project');
 const Conversation = require('../models/Conversation');
+const Notification = require('../models/Notification');
 
 // @desc    Submit proposal
 // @route   POST /api/proposals
@@ -9,7 +10,6 @@ exports.submitProposal = async (req, res) => {
     try {
         const { projectId, coverLetter, bidAmount, estimatedTime } = req.body;
 
-        // Validate
         if (!projectId || !coverLetter || !bidAmount || !estimatedTime) {
             return res.status(400).json({
                 success: false,
@@ -17,13 +17,9 @@ exports.submitProposal = async (req, res) => {
             });
         }
 
-        // Check if project exists and is open
         const project = await Project.findById(projectId);
         if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: 'Project not found'
-            });
+            return res.status(404).json({ success: false, message: 'Project not found' });
         }
 
         if (project.status !== 'Open') {
@@ -33,7 +29,6 @@ exports.submitProposal = async (req, res) => {
             });
         }
 
-        // Check if freelancer already submitted proposal
         const existingProposal = await Proposal.findOne({
             projectId,
             freelancerId: req.user.id
@@ -46,7 +41,6 @@ exports.submitProposal = async (req, res) => {
             });
         }
 
-        // Create proposal
         const proposal = await Proposal.create({
             projectId,
             freelancerId: req.user.id,
@@ -56,7 +50,6 @@ exports.submitProposal = async (req, res) => {
             status: 'Pending'
         });
 
-        // Increment proposals count on project
         await Project.findByIdAndUpdate(projectId, {
             $inc: { proposalsCount: 1 }
         });
@@ -74,6 +67,24 @@ exports.submitProposal = async (req, res) => {
                 chatMode: 'PRE_HIRE',
                 isLocked: false
             });
+        }
+
+        // ✅ Notify client — new proposal
+        try {
+            await Notification.create({
+                userId: project.clientId,
+                type: 'PROPOSAL_SUBMITTED',
+                title: 'New Proposal Received',
+                message: `${req.user.name} submitted a proposal for "${project.title}"`,
+                link: `/projects/${project._id}/proposals`,
+                relatedEntity: { entityType: 'PROPOSAL', entityId: proposal._id }
+            });
+
+            if (req.io) {
+                req.io.to(project.clientId.toString()).emit('newNotification');
+            }
+        } catch (notifErr) {
+            console.error('Notification error:', notifErr);
         }
 
         res.status(201).json({
@@ -99,13 +110,9 @@ exports.getProjectProposals = async (req, res) => {
         const project = await Project.findById(req.params.projectId);
 
         if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: 'Project not found'
-            });
+            return res.status(404).json({ success: false, message: 'Project not found' });
         }
 
-        // Check if client owns the project
         if (project.clientId.toString() !== req.user.id && req.user.role !== 'ADMIN') {
             return res.status(403).json({
                 success: false,
@@ -178,11 +185,9 @@ exports.acceptProposal = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        // ✅ Accept this one
         proposal.status = 'Accepted';
         await proposal.save();
 
-        // ✅ Auto-reject all OTHER pending proposals for this project
         await Proposal.updateMany(
             {
                 projectId: proposal.projectId,
@@ -192,14 +197,12 @@ exports.acceptProposal = async (req, res) => {
             { status: 'Rejected' }
         );
 
-        // Update project
         project.status = 'In Progress';
         project.awardedTo = proposal.freelancerId;
         project.startDate = new Date();
         project.chatLocked = false;
         await project.save();
 
-        // ✅ Upgrade conversation to POST_HIRE
         let conversation = await Conversation.findOne({
             participants: { $all: [project.clientId, proposal.freelancerId] },
             relatedProject: project._id
@@ -221,6 +224,24 @@ exports.acceptProposal = async (req, res) => {
             });
         }
 
+        // ✅ Notify freelancer — accepted
+        try {
+            await Notification.create({
+                userId: proposal.freelancerId,
+                type: 'PROPOSAL_ACCEPTED',
+                title: 'Proposal Accepted! 🎉',
+                message: `Your proposal for "${project.title}" has been accepted`,
+                link: `/projects/${project._id}`,
+                relatedEntity: { entityType: 'PROPOSAL', entityId: proposal._id }
+            });
+
+            if (req.io) {
+                req.io.to(proposal.freelancerId.toString()).emit('newNotification');
+            }
+        } catch (notifErr) {
+            console.error('Notification error:', notifErr);
+        }
+
         res.status(200).json({
             success: true,
             message: 'Proposal accepted. Other proposals auto-rejected.',
@@ -240,10 +261,7 @@ exports.rejectProposal = async (req, res) => {
         const proposal = await Proposal.findById(req.params.id);
 
         if (!proposal) {
-            return res.status(404).json({
-                success: false,
-                message: 'Proposal not found'
-            });
+            return res.status(404).json({ success: false, message: 'Proposal not found' });
         }
 
         if (['Withdrawn', 'Rejected', 'Accepted'].includes(proposal.status)) {
@@ -255,7 +273,6 @@ exports.rejectProposal = async (req, res) => {
 
         const project = await Project.findById(proposal.projectId);
 
-        // Check if client owns the project
         if (project.clientId.toString() !== req.user.id && req.user.role !== 'ADMIN') {
             return res.status(403).json({
                 success: false,
@@ -265,6 +282,24 @@ exports.rejectProposal = async (req, res) => {
 
         proposal.status = 'Rejected';
         await proposal.save();
+
+        // ✅ Notify freelancer — rejected
+        try {
+            await Notification.create({
+                userId: proposal.freelancerId,
+                type: 'PROPOSAL_REJECTED',
+                title: 'Proposal Update',
+                message: `Your proposal for "${project.title}" was not selected`,
+                link: `/proposals/my`,
+                relatedEntity: { entityType: 'PROPOSAL', entityId: proposal._id }
+            });
+
+            if (req.io) {
+                req.io.to(proposal.freelancerId.toString()).emit('newNotification');
+            }
+        } catch (notifErr) {
+            console.error('Notification error:', notifErr);
+        }
 
         res.status(200).json({
             success: true,
@@ -288,13 +323,9 @@ exports.withdrawProposal = async (req, res) => {
         const proposal = await Proposal.findById(req.params.id);
 
         if (!proposal) {
-            return res.status(404).json({
-                success: false,
-                message: 'Proposal not found'
-            });
+            return res.status(404).json({ success: false, message: 'Proposal not found' });
         }
 
-        // Check if freelancer owns the proposal
         if (proposal.freelancerId.toString() !== req.user.id) {
             return res.status(403).json({
                 success: false,

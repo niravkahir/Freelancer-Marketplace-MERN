@@ -10,11 +10,14 @@ const {
 } = require('../controllers/notificationController');
 const { protect } = require('../middleware/auth');
 
+// Specific routes FIRST
 router.get('/', protect, getNotifications);
 router.get('/unread-count', protect, getUnreadCount);
-router.put('/:id/read', protect, markAsRead);
 router.put('/read-all', protect, markAllAsRead);
-router.delete('/:id', protect, deleteNotification);
 router.delete('/delete-all', protect, deleteAllNotifications);
+
+// Parameterized routes AFTER
+router.put('/:id/read', protect, markAsRead);
+router.delete('/:id', protect, deleteNotification);
 
 module.exports = router;

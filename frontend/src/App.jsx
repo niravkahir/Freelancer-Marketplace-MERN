@@ -23,6 +23,8 @@ import ProjectProposals from './pages/proposals/ProjectProposals';
 import Inbox from './pages/messages/Inbox';
 import Chat from './pages/messages/Chat';
 
+import Notifications from './pages/notifications/Notifications';
+
 import './App.css';
 
 function App() {
@@ -93,7 +95,7 @@ function App() {
             }
           />
 
-          {/* ✅ Messages */}
+          {/* Messages */}
           <Route
             path="/messages"
             element={
@@ -107,6 +109,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Chat />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             }
           />

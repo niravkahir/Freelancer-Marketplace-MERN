@@ -1,0 +1,149 @@
+.notif-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.notif-header h1 {
+  font-size: 1.8rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.4rem;
+}
+
+.notif-header p {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.notif-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.notif-state {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.notif-item:hover { border-color: var(--gold); }
+
+.notif-item.unread {
+  background: rgba(212, 175, 55, 0.05);
+  border-left: 3px solid var(--gold);
+}
+
+.notif-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+}
+
+.notif-body { flex: 1; min-width: 0; }
+
+.notif-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.notif-top h3 {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.notif-body p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.5;
+}
+
+.notif-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.notif-delete {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.notif-delete:hover {
+  border-color: rgba(220, 50, 50, 0.5);
+  color: #ff6b6b;
+}
+
+.btn-outline, .btn-danger {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(220, 50, 50, 0.4);
+  color: #ff6b6b;
+}
+
+.btn-danger:hover { background: rgba(220, 50, 50, 0.15); }

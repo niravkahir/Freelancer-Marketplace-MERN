@@ -1,7 +1,6 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Conversation = require('../models/Conversation');
-const Notification = require('../models/Notification');
 
 // @desc    Send message (with restrictions)
 // @route   POST /api/messages
@@ -24,7 +23,6 @@ exports.sendMessage = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Conversation not found' });
         }
 
-        // Check participant
         const isParticipant = conversation.participants.some(
             (p) => p._id.toString() === req.user.id
         );
@@ -32,7 +30,7 @@ exports.sendMessage = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        // ✅ RESTRICTION 1: Locked conversation
+        // RESTRICTION 1: Locked conversation
         if (conversation.isLocked) {
             return res.status(403).json({
                 success: false,
@@ -40,7 +38,7 @@ exports.sendMessage = async (req, res) => {
             });
         }
 
-        // ✅ RESTRICTION 2: Pre-hire — freelancer cannot start
+        // RESTRICTION 2: Pre-hire — freelancer cannot start
         if (conversation.chatMode === 'PRE_HIRE' && req.user.role === 'FREELANCER') {
             const messageCount = await Message.countDocuments({
                 conversationId: conversation._id
@@ -53,12 +51,10 @@ exports.sendMessage = async (req, res) => {
             }
         }
 
-        // Other participant
         const receiver = conversation.participants.find(
             (p) => p._id.toString() !== req.user.id
         );
 
-        // Create message
         const message = await Message.create({
             conversationId: conversation._id,
             senderId: req.user.id,
@@ -67,7 +63,6 @@ exports.sendMessage = async (req, res) => {
             isRead: false
         });
 
-        // Update conversation.lastMessage + unread count
         conversation.lastMessage = {
             content,
             senderId: req.user.id,
@@ -88,24 +83,10 @@ exports.sendMessage = async (req, res) => {
 
         await conversation.save();
 
-        // Populate message for response
         const populatedMessage = await Message.findById(message._id)
             .populate('senderId', 'name email profilePicture');
 
-        // ✅ Create notification for receiver
-        await Notification.create({
-            userId: receiver._id,
-            type: 'MESSAGE_RECEIVED',
-            title: 'New Message',
-            message: `${req.user.name} sent you a message`,
-            link: `/messages/${conversation._id}`,
-            relatedEntity: {
-                entityType: 'MESSAGE',
-                entityId: message._id
-            }
-        });
-
-        // ✅ Emit to BOTH receiver and sender (for cross-tab sync)
+        // ✅ Emit to receiver + sender (no notification created)
         if (req.io) {
             req.io.to(receiver._id.toString()).emit('receiveMessage', populatedMessage);
             req.io.to(receiver._id.toString()).emit('refreshUnread');
@@ -146,7 +127,6 @@ exports.markConversationRead = async (req, res) => {
             { isRead: true, readAt: new Date() }
         );
 
-        // Reset unread count for this user
         const entry = conversation.unreadCounts.find(
             (u) => u.userId.toString() === req.user.id
         );

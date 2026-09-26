@@ -2,6 +2,7 @@ const Payment = require('../models/Payment');
 const FreelancerProfile = require('../models/FreelancerProfile');
 const Conversation = require('../models/Conversation');
 const Project = require('../models/Project');
+const Notification = require('../models/Notification');
 
 exports.createPayment = async (req, res) => {
     try {
@@ -92,6 +93,24 @@ exports.updatePaymentStatus = async (req, res) => {
                 { userId: payment.freelancerId },
                 { $inc: { totalEarnings: payment.amount } }
             );
+
+            // ✅ Notify freelancer — payment received
+            try {
+                await Notification.create({
+                    userId: payment.freelancerId,
+                    type: 'PAYMENT_RECEIVED',
+                    title: 'Payment Received 💰',
+                    message: `You received ₹${payment.amount.toLocaleString()}`,
+                    link: `/payments`,
+                    relatedEntity: { entityType: 'PAYMENT', entityId: payment._id }
+                });
+
+                if (req.io) {
+                    req.io.to(payment.freelancerId.toString()).emit('newNotification');
+                }
+            } catch (notifErr) {
+                console.error('Notification error:', notifErr);
+            }
 
             // ✅ Check if project is also completed → lock chat
             const project = await Project.findById(payment.projectId);

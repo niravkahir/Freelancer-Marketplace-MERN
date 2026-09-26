@@ -113,6 +113,35 @@
   text-align: center;
 }
 
+.nav-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.1rem;
+  transition: transform 0.3s;
+}
+
+.nav-bell:hover {
+  transform: scale(1.15);
+}
+
+.bell-dot {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  background: #ff3b3b;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 59, 59, 0.8);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
 @media (max-width: 900px) {
   .navbar-links { display: none; }
 }

@@ -9,52 +9,60 @@ const Navbar = () => {
   const { isAuthenticated, user, logout, isClient } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
-  const [unreadCount, setUnreadCount] = useState(0);
+
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
 
-  // ✅ Fetch unread count (poll + socket trigger)
   useEffect(() => {
     if (!isAuthenticated) {
-      setUnreadCount(0);
+      setUnreadMessages(0);
+      setHasUnreadNotifs(false);
       return;
     }
 
-    const fetchUnread = async () => {
+    const fetchCounts = async () => {
       try {
-        const { data } = await api.get('/messages/unread-count');
-        setUnreadCount(data.count || 0);
+        const [msgRes, notifRes] = await Promise.all([
+          api.get('/messages/unread-count'),
+          api.get('/notifications/unread-count'),
+        ]);
+        setUnreadMessages(msgRes.data.count || 0);
+        setHasUnreadNotifs((notifRes.data.unreadCount || 0) > 0);
       } catch (e) {}
     };
 
-    fetchUnread();
-
-    // Poll less aggressively — socket handles most updates
-    const interval = setInterval(fetchUnread, 5000);
-
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 10000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
-  // ✅ Listen to socket event for instant refresh
   useEffect(() => {
     if (!socket) return;
 
     const refresh = async () => {
       try {
-        const { data } = await api.get('/messages/unread-count');
-        setUnreadCount(data.count || 0);
+        const [msgRes, notifRes] = await Promise.all([
+          api.get('/messages/unread-count'),
+          api.get('/notifications/unread-count'),
+        ]);
+        setUnreadMessages(msgRes.data.count || 0);
+        setHasUnreadNotifs((notifRes.data.unreadCount || 0) > 0);
       } catch (e) {}
     };
 
     socket.on('refreshUnread', refresh);
     socket.on('unreadUpdate', refresh);
+    socket.on('newNotification', refresh);
 
     return () => {
       socket.off('refreshUnread', refresh);
       socket.off('unreadUpdate', refresh);
+      socket.off('newNotification', refresh);
     };
   }, [socket]);
 
@@ -75,14 +83,22 @@ const Navbar = () => {
             </>
           )}
           {isAuthenticated && (
-            <li>
-              <Link to="/messages" className="nav-messages-link">
-                💬 Messages
-                {unreadCount > 0 && (
-                  <span className="nav-badge">{unreadCount}</span>
-                )}
-              </Link>
-            </li>
+            <>
+              <li>
+                <Link to="/messages" className="nav-messages-link">
+                  💬 Messages
+                  {unreadMessages > 0 && (
+                    <span className="nav-badge">{unreadMessages}</span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link to="/notifications" className="nav-bell">
+                  🔔
+                  {hasUnreadNotifs && <span className="bell-dot" />}
+                </Link>
+              </li>
+            </>
           )}
         </ul>
 
