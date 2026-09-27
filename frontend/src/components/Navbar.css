@@ -1,3 +1,4 @@
+/* ============ NAVBAR BASE ============ */
 .navbar {
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border);
@@ -5,27 +6,30 @@
   top: 0;
   z-index: 100;
   backdrop-filter: blur(10px);
+  overflow: visible;
 }
 
 .navbar-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1.2rem 2rem;
+  padding: 1rem 2rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
+  gap: 1.5rem;
+  width: 100%;
 }
 
+/* ============ BRAND ============ */
 .navbar-brand {
   display: flex;
   align-items: center;
   gap: 0.7rem;
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: 0.95rem;
   letter-spacing: 0.15em;
   color: var(--text-primary);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .brand-icon {
@@ -33,38 +37,187 @@
   font-size: 1.4rem;
 }
 
+/* ============ MAIN LINKS ============ */
 .navbar-links {
   display: flex;
-  gap: 2rem;
+  gap: 1.8rem;
   list-style: none;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.navbar-links li {
+  white-space: nowrap;
 }
 
 .navbar-links a {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   transition: color 0.3s;
+  text-decoration: none;
 }
 
 .navbar-links a:hover {
   color: var(--gold);
 }
 
+/* ============ RIGHT SIDE ACTIONS ============ */
 .navbar-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.8rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
+/* Icon buttons (Messages + Bell) */
+.nav-icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.nav-icon-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--gold);
+  color: var(--bg-primary);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.bell-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 9px;
+  height: 9px;
+  background: #ff3b3b;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 59, 59, 0.8);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.15); }
+}
+
+/* ============ USER MENU ============ */
+.nav-user {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.nav-user:hover {
+  border-color: var(--gold);
+}
+
+.navbar-user {
+  color: var(--gold);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.nav-user::after {
+  content: '▾';
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  margin-left: 0.3rem;
+}
+
+.nav-user-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  min-width: 160px;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: all 0.25s;
+  z-index: 200;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.nav-user:hover .nav-user-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav-user-menu a,
+.nav-user-menu button {
+  display: block;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.nav-user-menu a:hover,
+.nav-user-menu button:hover {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--gold);
+}
+
+/* ============ AUTH BUTTONS ============ */
 .btn-outline,
 .btn-solid {
   padding: 0.55rem 1.4rem;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: 3px;
   transition: all 0.3s;
+  white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn-outline {
@@ -82,66 +235,41 @@
   background: var(--gold);
   color: var(--bg-primary);
   font-weight: 600;
+  border: none;
 }
 
 .btn-solid:hover {
   background: var(--gold-light);
 }
 
-.navbar-user {
-  color: var(--gold);
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
-  margin-right: 0.5rem;
-}
-
-.nav-messages-link {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.nav-badge {
-  background: var(--gold);
-  color: var(--bg-primary);
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.1rem 0.4rem;
-  border-radius: 8px;
-  min-width: 18px;
-  text-align: center;
-}
-
-.nav-bell {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  font-size: 1.1rem;
-  transition: transform 0.3s;
-}
-
-.nav-bell:hover {
-  transform: scale(1.15);
-}
-
-.bell-dot {
-  position: absolute;
-  top: -2px;
-  right: -4px;
-  width: 9px;
-  height: 9px;
-  background: #ff3b3b;
-  border-radius: 50%;
-  box-shadow: 0 0 6px rgba(255, 59, 59, 0.8);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.2); }
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1100px) {
+  .navbar-links {
+    gap: 1.2rem;
+  }
+  .navbar-links a {
+    font-size: 0.75rem;
+  }
 }
 
 @media (max-width: 900px) {
-  .navbar-links { display: none; }
+  .navbar-links {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-container {
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+  .brand-text {
+    display: none;
+  }
+  .navbar-brand {
+    gap: 0;
+  }
+  .navbar-user {
+    display: none;
+  }
 }

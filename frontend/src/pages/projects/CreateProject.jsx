@@ -21,12 +21,22 @@ const CreateProject = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // ✅ Today for min constraint
+  const today = new Date().toISOString().split('T')[0];
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // ✅ Frontend guard
+    if (form.deadline < today) {
+      setError('Deadline must be a future date');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -109,7 +119,7 @@ const CreateProject = () => {
                 value={form.deadline}
                 onChange={handleChange}
                 required
-                min={new Date().toISOString().split('T')[0]}
+                min={today}
               />
             </div>
           </div>

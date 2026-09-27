@@ -2,6 +2,8 @@ const Contract = require('../models/Contract');
 const Project = require('../models/Project');
 const Proposal = require('../models/Proposal');
 const Notification = require('../models/Notification');
+const Payment = require('../models/Payment');
+const FreelancerProfile = require('../models/FreelancerProfile');
 
 // @desc    Create contract (Client only, after proposal accepted)
 // @route   POST /api/contracts
@@ -14,6 +16,30 @@ exports.createContract = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Please provide all required fields'
+            });
+        }
+
+        // ✅ Date validation
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setHours(0, 0, 0, 0);
+
+        if (start < today) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date cannot be in the past'
+            });
+        }
+
+        if (end <= start) {
+            return res.status(400).json({
+                success: false,
+                message: 'End date must be after start date'
             });
         }
 
@@ -142,7 +168,15 @@ exports.getContractById = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        res.status(200).json({ success: true, contract });
+        // ✅ Check for payment linked to this contract's project
+        const payment = await Payment.findOne({ projectId: contract.projectId._id });
+
+        const contractObj = contract.toObject();
+        contractObj.hasPayment = !!payment;
+        contractObj.paymentId = payment ? payment._id : null;
+        contractObj.paymentStatus = payment ? payment.status : null;
+
+        res.status(200).json({ success: true, contract: contractObj });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -192,7 +226,6 @@ exports.signContract = async (req, res) => {
 
         await contract.save();
 
-        // ✅ Notify other party + broadcast
         const otherPartyId = isClient ? contract.freelancerId : contract.clientId;
         try {
             await Notification.create({
@@ -208,7 +241,6 @@ exports.signContract = async (req, res) => {
 
             if (req.io) {
                 req.io.to(otherPartyId.toString()).emit('newNotification');
-                // ✅ Broadcast to both parties so their pages update live
                 req.io.to(contract.clientId.toString()).emit('contractChanged', {
                     contractId: contract._id
                 });
@@ -258,6 +290,16 @@ exports.completeContract = async (req, res) => {
             status: 'Completed',
             completionDate: new Date()
         });
+
+        // ✅ Increment freelancer's completed projects count
+        try {
+            await FreelancerProfile.findOneAndUpdate(
+                { userId: contract.freelancerId },
+                { $inc: { projectsCompleted: 1 } }
+            );
+        } catch (e) {
+            console.error('Profile update error:', e);
+        }
 
         try {
             await Notification.create({

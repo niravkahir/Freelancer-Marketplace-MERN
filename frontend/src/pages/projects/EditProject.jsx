@@ -24,6 +24,9 @@ const EditProject = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // ✅ Today for min constraint
+  const today = new Date().toISOString().split('T')[0];
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -56,6 +59,13 @@ const EditProject = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // ✅ Frontend guard
+    if (form.deadline < today) {
+      setError('Deadline must be a future date');
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -84,9 +94,13 @@ const EditProject = () => {
     }
   };
 
-  if (loading) return <div className="create-project-page"><div className="create-container">Loading...</div></div>;
-
-  const today = new Date().toISOString().split('T')[0];
+  if (loading) {
+    return (
+      <div className="create-project-page">
+        <div className="create-container">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="create-project-page">
@@ -116,7 +130,14 @@ const EditProject = () => {
             </div>
             <div className="form-group">
               <label>Deadline *</label>
-              <input name="deadline" type="date" value={form.deadline} onChange={handleChange} required min={today} />
+              <input
+                name="deadline"
+                type="date"
+                value={form.deadline}
+                onChange={handleChange}
+                required
+                min={today}
+              />
             </div>
           </div>
 

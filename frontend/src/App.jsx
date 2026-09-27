@@ -29,6 +29,9 @@ import Contracts from './pages/contracts/Contracts';
 import ContractDetail from './pages/contracts/ContractDetail';
 import CreateContract from './pages/contracts/CreateContract';
 
+import Payments from './pages/payments/Payments';
+import PaymentDetail from './pages/payments/PaymentDetail';
+
 import './App.css';
 
 function App() {
@@ -141,6 +144,15 @@ function App() {
           <Route
             path="/contracts/:id"
             element={<ProtectedRoute><ContractDetail /></ProtectedRoute>}
+          />
+
+          <Route
+            path="/payments"
+            element={<ProtectedRoute><Payments /></ProtectedRoute>}
+          />
+          <Route
+            path="/payments/:id"
+            element={<ProtectedRoute><PaymentDetail /></ProtectedRoute>}
           />
         </Routes>
       </main>

@@ -15,6 +15,7 @@ const ContractDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [creatingPayment, setCreatingPayment] = useState(false);
 
   const load = async () => {
     try {
@@ -31,7 +32,7 @@ const ContractDetail = () => {
     load();
   }, [id]);
 
-  // ✅ Real-time refresh when either party signs / completes
+  // ✅ Real-time refresh on contract changes (sign, complete, payment)
   useEffect(() => {
     if (!socket) return;
 
@@ -41,10 +42,14 @@ const ContractDetail = () => {
       }
     };
 
+    const onPaymentChanged = () => load();
+
     socket.on('contractChanged', onContractChanged);
+    socket.on('paymentChanged', onPaymentChanged);
 
     return () => {
       socket.off('contractChanged', onContractChanged);
+      socket.off('paymentChanged', onPaymentChanged);
     };
   }, [socket, id]);
 
@@ -70,6 +75,24 @@ const ContractDetail = () => {
       alert(err.response?.data?.message || 'Failed to complete');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleCreatePayment = async () => {
+    setCreatingPayment(true);
+    try {
+      const { data } = await api.post('/payments', {
+        projectId: contract.projectId._id,
+        proposalId: contract.proposalId._id,
+        amount: contract.budget,
+        paymentMethod: 'RAZORPAY',
+        freelancerId: contract.freelancerId._id,
+      });
+      navigate(`/payments/${data.payment._id}`);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create payment');
+    } finally {
+      setCreatingPayment(false);
     }
   };
 
@@ -160,6 +183,39 @@ const ContractDetail = () => {
             </div>
           </div>
 
+          {/* ✅ Payment Status Banner — visible to both parties */}
+          {contract.hasPayment && (
+            <div className={`cd-notice ${contract.paymentStatus === 'COMPLETED' ? 'success' : ''}`}>
+              {contract.paymentStatus === 'PENDING' && '⏳ Payment pending'}
+              {contract.paymentStatus === 'PROCESSING' && '💳 Payment in progress'}
+              {contract.paymentStatus === 'COMPLETED' && '✅ Payment completed successfully'}
+              {contract.paymentStatus === 'FAILED' && '❌ Payment failed'}
+
+              {contract.paymentStatus !== 'COMPLETED' && (
+                <button
+                  onClick={() => navigate(`/payments/${contract.paymentId}`)}
+                  style={{
+                    display: 'block',
+                    marginTop: '0.6rem',
+                    background: 'transparent',
+                    border: '1px solid currentColor',
+                    color: 'inherit',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    width: '100%',
+                    fontSize: '0.72rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  View Payment
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Sign button — PENDING status */}
           {contract.status === 'PENDING' && !mySigned && (
             <button
               className="cd-btn-primary"
@@ -176,22 +232,52 @@ const ContractDetail = () => {
             </div>
           )}
 
+          {/* ACTIVE status — client sees payment + complete actions */}
           {contract.status === 'ACTIVE' && isOwner && (
-            <button
-              className="cd-btn-primary"
-              onClick={handleComplete}
-              disabled={actionLoading}
-            >
-              {actionLoading ? 'Completing...' : '✅ Mark as Completed'}
-            </button>
+            <>
+              {!contract.hasPayment && (
+                <button
+                  className="cd-btn-primary"
+                  onClick={handleCreatePayment}
+                  disabled={creatingPayment}
+                >
+                  {creatingPayment ? 'Creating...' : '💰 Create Payment'}
+                </button>
+              )}
+
+              {contract.hasPayment && (
+                <button
+                  className="cd-btn-primary"
+                  onClick={() => navigate(`/payments/${contract.paymentId}`)}
+                >
+                  💳 View Payment ({contract.paymentStatus})
+                </button>
+              )}
+
+              <button
+                className="cd-btn-primary"
+                onClick={handleComplete}
+                disabled={actionLoading}
+                style={{
+                  marginTop: '0.5rem',
+                  background: 'transparent',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {actionLoading ? 'Completing...' : '✅ Mark as Completed'}
+              </button>
+            </>
           )}
 
+          {/* ACTIVE status — freelancer view */}
           {contract.status === 'ACTIVE' && !isOwner && (
             <div className="cd-notice success">
               ✅ Contract is active. Work in progress.
             </div>
           )}
 
+          {/* COMPLETED */}
           {contract.status === 'COMPLETED' && (
             <div className="cd-notice success">
               ✅ Contract completed on{' '}

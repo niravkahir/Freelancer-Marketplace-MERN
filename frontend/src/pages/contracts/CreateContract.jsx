@@ -18,12 +18,33 @@ const CreateContract = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // ✅ Today's date for min constraint
+  const today = new Date().toISOString().split('T')[0];
+
+  // ✅ End date minimum = day after start date
+  const minEndDate = form.startDate
+    ? new Date(new Date(form.startDate).getTime() + 86400000)
+        .toISOString()
+        .split('T')[0]
+    : today;
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // ✅ Frontend guard (backend validates too)
+    if (form.startDate < today) {
+      setError('Start date cannot be in the past');
+      return;
+    }
+    if (form.endDate <= form.startDate) {
+      setError('End date must be after start date');
+      return;
+    }
+
     setSaving(true);
     try {
       const { data } = await api.post('/contracts', {
@@ -50,7 +71,11 @@ const CreateContract = () => {
         CREATE CONTRACT
       </h1>
 
-      {error && <div className="cd-notice" style={{ marginBottom: '1rem' }}>{error}</div>}
+      {error && (
+        <div className="cd-notice" style={{ marginBottom: '1rem' }}>
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="cd-main">
         <div className="cd-card">
@@ -91,6 +116,7 @@ const CreateContract = () => {
               <input
                 name="budget"
                 type="number"
+                min="0"
                 value={form.budget}
                 onChange={handleChange}
                 required
@@ -109,6 +135,7 @@ const CreateContract = () => {
                   value={form.startDate}
                   onChange={handleChange}
                   required
+                  min={today}
                   style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0.7rem 1rem', borderRadius: '3px', fontFamily: 'inherit' }}
                 />
               </div>
@@ -122,6 +149,7 @@ const CreateContract = () => {
                   value={form.endDate}
                   onChange={handleChange}
                   required
+                  min={minEndDate}
                   style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '0.7rem 1rem', borderRadius: '3px', fontFamily: 'inherit' }}
                 />
               </div>
