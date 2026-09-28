@@ -32,6 +32,9 @@ import CreateContract from './pages/contracts/CreateContract';
 import Payments from './pages/payments/Payments';
 import PaymentDetail from './pages/payments/PaymentDetail';
 
+import Support from './pages/support/Support';
+import TicketDetail from './pages/Support/TicketDetail';
+
 import './App.css';
 
 function App() {
@@ -40,12 +43,12 @@ function App() {
       <Navbar />
       <main className="main-content">
         <Routes>
-          {/* Public */}
+          {/* ---------- Public ---------- */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Projects */}
+          {/* ---------- Projects ---------- */}
           <Route path="/projects" element={<Projects />} />
 
           <Route
@@ -86,13 +89,24 @@ function App() {
 
           <Route path="/projects/:id" element={<ProjectDetail />} />
 
-          {/* User */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+          {/* ---------- User ---------- */}
+          <Route
+            path="/dashboard"
+            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+          />
+          <Route
+            path="/profile"
+            element={<ProtectedRoute><Profile /></ProtectedRoute>}
+          />
+          <Route
+            path="/profile/edit"
+            element={<ProtectedRoute><EditProfile /></ProtectedRoute>}
+          />
+
+          {/* Public user profile */}
           <Route path="/users/:id" element={<UserProfile />} />
 
-          {/* Proposals */}
+          {/* ---------- Proposals ---------- */}
           <Route
             path="/proposals/my"
             element={
@@ -102,33 +116,23 @@ function App() {
             }
           />
 
-          {/* Messages */}
+          {/* ---------- Messages ---------- */}
           <Route
             path="/messages"
-            element={
-              <ProtectedRoute>
-                <Inbox />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute><Inbox /></ProtectedRoute>}
           />
           <Route
             path="/messages/:id"
-            element={
-              <ProtectedRoute>
-                <Chat />
-              </ProtectedRoute>
-            }
-          />
-          
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute><Chat /></ProtectedRoute>}
           />
 
+          {/* ---------- Notifications ---------- */}
+          <Route
+            path="/notifications"
+            element={<ProtectedRoute><Notifications /></ProtectedRoute>}
+          />
+
+          {/* ---------- Contracts ---------- */}
           <Route
             path="/contracts"
             element={<ProtectedRoute><Contracts /></ProtectedRoute>}
@@ -146,6 +150,7 @@ function App() {
             element={<ProtectedRoute><ContractDetail /></ProtectedRoute>}
           />
 
+          {/* ---------- Payments ---------- */}
           <Route
             path="/payments"
             element={<ProtectedRoute><Payments /></ProtectedRoute>}
@@ -153,6 +158,16 @@ function App() {
           <Route
             path="/payments/:id"
             element={<ProtectedRoute><PaymentDetail /></ProtectedRoute>}
+          />
+
+          {/* ---------- Support Tickets ---------- */}
+          <Route
+            path="/support"
+            element={<ProtectedRoute><Support /></ProtectedRoute>}
+          />
+          <Route
+            path="/support/:id"
+            element={<ProtectedRoute><TicketDetail /></ProtectedRoute>}
           />
         </Routes>
       </main>

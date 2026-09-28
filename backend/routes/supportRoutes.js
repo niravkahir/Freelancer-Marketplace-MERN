@@ -5,7 +5,8 @@ const {
     getMyTickets,
     getTicketById,
     addReply,
-    closeTicket
+    closeTicket,
+    rateTicket
 } = require('../controllers/supportController');
 const { protect } = require('../middleware/auth');
 
@@ -14,5 +15,6 @@ router.get('/', protect, getMyTickets);
 router.get('/:id', protect, getTicketById);
 router.post('/:id/reply', protect, addReply);
 router.put('/:id/close', protect, closeTicket);
+router.put('/:id/rate', protect, rateTicket);
 
 module.exports = router;

@@ -94,6 +94,7 @@ const Navbar = () => {
             <>
               <li><Link to="/contracts">Contracts</Link></li>
               <li><Link to="/payments">Payments</Link></li>
+              <li><Link to="/support">Support</Link></li>
             </>
           )}
         </ul>
