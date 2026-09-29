@@ -6,12 +6,14 @@ import api from '../services/api';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout, isClient, isFreelancer } = useAuth();
+  const { isAuthenticated, user, logout, isClient, isFreelancer, isAdmin } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
 
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
+
+  const logoPath = isAuthenticated ? '/dashboard' : '/';
 
   const handleLogout = async () => {
     await logout();
@@ -69,29 +71,38 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        {/* Brand */}
-        <Link to="/" className="navbar-brand">
+        <Link to={logoPath} className="navbar-brand">
           <span className="brand-icon">◈</span>
           <span className="brand-text">FREELANCER MARKETPLACE</span>
         </Link>
 
-        {/* Main links */}
         <ul className="navbar-links">
+          {/* Explore — visible to all */}
           <li><Link to="/projects">Explore</Link></li>
 
+          {/* ✅ ADMIN-ONLY nav */}
+          {isAuthenticated && isAdmin && (
+            <>
+              <li><Link to="/admin">Admin</Link></li>
+              <li><Link to="/admin/support">Support</Link></li>
+            </>
+          )}
+
+          {/* ✅ CLIENT nav */}
           {isAuthenticated && isClient && (
             <>
               <li><Link to="/projects/my">My Projects</Link></li>
               <li><Link to="/projects/create">Post Project</Link></li>
+              <li><Link to="/contracts">Contracts</Link></li>
+              <li><Link to="/payments">Payments</Link></li>
+              <li><Link to="/support">Support</Link></li>
             </>
           )}
 
+          {/* ✅ FREELANCER nav */}
           {isAuthenticated && isFreelancer && (
-            <li><Link to="/proposals/my">My Proposals</Link></li>
-          )}
-
-          {isAuthenticated && (
             <>
+              <li><Link to="/proposals/my">My Proposals</Link></li>
               <li><Link to="/contracts">Contracts</Link></li>
               <li><Link to="/payments">Payments</Link></li>
               <li><Link to="/support">Support</Link></li>
@@ -99,25 +110,25 @@ const Navbar = () => {
           )}
         </ul>
 
-        {/* Right side — icons + user actions */}
         <div className="navbar-actions">
           {isAuthenticated ? (
             <>
-              {/* Message icon */}
-              <Link to="/messages" className="nav-icon-btn" title="Messages">
-                💬
-                {unreadMessages > 0 && (
-                  <span className="nav-badge">{unreadMessages}</span>
-                )}
-              </Link>
+              {/* Messages icon — hide for admin */}
+              {!isAdmin && (
+                <Link to="/messages" className="nav-icon-btn" title="Messages">
+                  💬
+                  {unreadMessages > 0 && (
+                    <span className="nav-badge">{unreadMessages}</span>
+                  )}
+                </Link>
+              )}
 
-              {/* Notification icon — only bell */}
+              {/* Notifications — keep for all */}
               <Link to="/notifications" className="nav-icon-btn" title="Notifications">
                 🔔
                 {hasUnreadNotifs && <span className="bell-dot" />}
               </Link>
 
-              {/* User dropdown menu */}
               <div className="nav-user">
                 <span className="navbar-user">
                   Hi, {user?.name?.split(' ')[0]}
@@ -125,6 +136,7 @@ const Navbar = () => {
                 <div className="nav-user-menu">
                   <Link to="/dashboard">Dashboard</Link>
                   <Link to="/profile">Profile</Link>
+                  {isAdmin && <Link to="/admin">Admin Panel</Link>}
                   <button onClick={handleLogout}>Logout</button>
                 </div>
               </div>

@@ -51,6 +51,7 @@ const skillRoutes = require('./routes/skillRoutes');
 const contractRoutes = require('./routes/contractRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 app.get('/', (req, res) => {
     res.send('🚀 Freelancer Marketplace API is running...');
@@ -68,6 +69,7 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(errorHandler);
 

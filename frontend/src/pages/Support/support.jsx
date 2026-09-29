@@ -14,7 +14,7 @@ const CATEGORIES = [
   { value: 'FEEDBACK', label: 'Feedback', icon: '💬' },
   { value: 'GENERAL_QUERY', label: 'General Query', icon: '❓' },
   { value: 'FEATURE_REQUEST', label: 'Feature Request', icon: '✨' },
-  { value: 'BUG_REPORT', label: 'Bug Report', icon: '🐛' }
+  { value: 'BUG_REPORT', label: 'Bug Report', icon: '🐛' },
 ];
 
 const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
@@ -48,21 +48,13 @@ const Support = () => {
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  // ✅ Real-time refresh when a ticket changes
   useEffect(() => {
     if (!socket) return;
-
     const onChanged = () => load();
-
     socket.on('ticketChanged', onChanged);
-
-    return () => {
-      socket.off('ticketChanged', onChanged);
-    };
+    return () => socket.off('ticketChanged', onChanged);
   }, [socket]);
 
   const handleSubmit = async (e) => {
@@ -87,6 +79,15 @@ const Support = () => {
     }
   };
 
+  // ✅ Admin opens admin panel view, users open their own view
+  const handleCardClick = (ticketId) => {
+    if (isAdmin) {
+      navigate(`/admin/support/${ticketId}`);
+    } else {
+      navigate(`/support/${ticketId}`);
+    }
+  };
+
   if (loading) return <div className="sup-state">Loading...</div>;
 
   return (
@@ -96,9 +97,11 @@ const Support = () => {
           <h1>SUPPORT CENTER</h1>
           <p>{isAdmin ? 'Manage all user tickets' : 'Get help with any issue'}</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          + New Ticket
-        </button>
+        {!isAdmin && (
+          <button className="btn-primary" onClick={() => setShowModal(true)}>
+            + New Ticket
+          </button>
+        )}
       </div>
 
       {tickets.length === 0 ? (
@@ -111,7 +114,7 @@ const Support = () => {
             <div
               key={t._id}
               className="sup-card"
-              onClick={() => navigate(`/support/${t._id}`)}
+              onClick={() => handleCardClick(t._id)}
             >
               <div className="sup-card-top">
                 <span className={`sup-status sup-status-${t.status.toLowerCase()}`}>
@@ -130,9 +133,7 @@ const Support = () => {
                   {CATEGORIES.find((c) => c.value === t.category)?.icon || '🎫'}{' '}
                   {t.category.replace('_', ' ')}
                 </span>
-                {isAdmin && t.userId?.name && (
-                  <span>· {t.userId.name}</span>
-                )}
+                {isAdmin && t.userId?.name && <span>· {t.userId.name}</span>}
               </div>
 
               <div className="sup-footer">
@@ -144,8 +145,8 @@ const Support = () => {
         </div>
       )}
 
-      {/* Create Modal */}
-      {showModal && (
+      {/* Create Modal (only for users) */}
+      {showModal && !isAdmin && (
         <div
           className="modal-overlay"
           onClick={() => !saving && setShowModal(false)}
@@ -160,9 +161,7 @@ const Support = () => {
                 <label>Subject *</label>
                 <input
                   value={form.subject}
-                  onChange={(e) =>
-                    setForm({ ...form, subject: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
                   required
                   placeholder="Brief title of your issue"
                   maxLength={100}
@@ -173,9 +172,7 @@ const Support = () => {
                 <label>Category *</label>
                 <select
                   value={form.category}
-                  onChange={(e) =>
-                    setForm({ ...form, category: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
                   required
                 >
                   {CATEGORIES.map((c) => (
@@ -190,9 +187,7 @@ const Support = () => {
                 <label>Priority</label>
                 <select
                   value={form.priority}
-                  onChange={(e) =>
-                    setForm({ ...form, priority: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, priority: e.target.value })}
                 >
                   {PRIORITIES.map((p) => (
                     <option key={p} value={p}>

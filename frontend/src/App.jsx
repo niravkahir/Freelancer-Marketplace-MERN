@@ -35,6 +35,12 @@ import PaymentDetail from './pages/payments/PaymentDetail';
 import Support from './pages/support/Support';
 import TicketDetail from './pages/Support/TicketDetail';
 
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ManageUsers from './pages/admin/ManageUsers';
+import ManageProjects from './pages/admin/ManageProjects';
+import ManageTickets from './pages/admin/ManageTickets';
+import AdminTicketDetail from './pages/admin/AdminTicketDetail';
+
 import './App.css';
 
 function App() {
@@ -168,6 +174,28 @@ function App() {
           <Route
             path="/support/:id"
             element={<ProtectedRoute><TicketDetail /></ProtectedRoute>}
+          />
+
+            {/* ---------- Admin ---------- */}
+          <Route
+            path="/admin"
+            element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>}
+          />
+          <Route
+            path="/admin/users"
+            element={<ProtectedRoute allowedRoles={['ADMIN']}><ManageUsers /></ProtectedRoute>}
+          />
+          <Route
+            path="/admin/projects"
+            element={<ProtectedRoute allowedRoles={['ADMIN']}><ManageProjects /></ProtectedRoute>}
+          />
+          <Route
+            path="/admin/support"
+            element={<ProtectedRoute allowedRoles={['ADMIN']}><ManageTickets /></ProtectedRoute>}
+          />
+          <Route
+            path="/admin/support/:id"
+            element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminTicketDetail /></ProtectedRoute>}
           />
         </Routes>
       </main>

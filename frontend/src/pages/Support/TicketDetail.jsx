@@ -11,6 +11,13 @@ const TicketDetail = () => {
   const { user, isAdmin } = useAuth();
   const { socket } = useSocket();
 
+  // ✅ ADMIN: redirect to admin panel version
+  useEffect(() => {
+    if (isAdmin) {
+      navigate(`/admin/support/${id}`, { replace: true });
+    }
+  }, [isAdmin, id, navigate]);
+
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,16 +34,23 @@ const TicketDetail = () => {
     }
   };
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    // Don't fetch for admins — they're being redirected
+    if (isAdmin) return;
+    load();
+  }, [id, isAdmin]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || isAdmin) return;
+
     const onChanged = (data) => {
       if (data.ticketId?.toString() === id) load();
     };
+
     socket.on('ticketChanged', onChanged);
+
     return () => socket.off('ticketChanged', onChanged);
-  }, [socket, id]);
+  }, [socket, id, isAdmin]);
 
   const handleClose = async () => {
     if (!window.confirm('Close this ticket?')) return;
@@ -50,6 +64,9 @@ const TicketDetail = () => {
       setActionLoading(false);
     }
   };
+
+  // ✅ Don't render user view for admin (prevents flash while redirecting)
+  if (isAdmin) return null;
 
   if (loading) return <div className="td-state">Loading...</div>;
   if (error) return <div className="td-state error">{error}</div>;
@@ -96,15 +113,18 @@ const TicketDetail = () => {
           <p>{ticket.description}</p>
         </div>
 
-        {/* Admin resolution (if provided) */}
-        {ticket.resolution && (
-          <div className="td-msg td-msg-support">
+        {/* Admin responses (if any) */}
+        {ticket.conversation?.slice(1).map((c, i) => (
+          <div key={i} className="td-msg td-msg-support">
             <div className="td-msg-header">
               <strong>🛡️ Support Response</strong>
+              <span className="td-msg-time">
+                {new Date(c.sentAt).toLocaleString()}
+              </span>
             </div>
-            <p>{ticket.resolution}</p>
+            <p>{c.message}</p>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Status banner */}
