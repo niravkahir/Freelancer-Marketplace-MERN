@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
+import ReviewForm from '../../components/ReviewForm';
+import ReviewList from '../../components/ReviewList';
 import './ContractDetail.css';
 
 const ContractDetail = () => {
@@ -16,11 +18,18 @@ const ContractDetail = () => {
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [creatingPayment, setCreatingPayment] = useState(false);
+  const [myReview, setMyReview] = useState(null);
 
   const load = async () => {
     try {
       const { data } = await api.get(`/contracts/${id}`);
       setContract(data.contract);
+
+      // ✅ Check if I already reviewed this contract
+      try {
+        const reviewRes = await api.get(`/reviews/contract/${id}/me`);
+        setMyReview(reviewRes.data.review);
+      } catch (e) {}
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load contract');
     } finally {
@@ -32,14 +41,12 @@ const ContractDetail = () => {
     load();
   }, [id]);
 
-  // ✅ Real-time refresh on contract changes (sign, complete, payment)
+  // ✅ Real-time refresh for both contract and payment changes
   useEffect(() => {
     if (!socket) return;
 
     const onContractChanged = (data) => {
-      if (data.contractId?.toString() === id) {
-        load();
-      }
+      if (data.contractId?.toString() === id) load();
     };
 
     const onPaymentChanged = () => load();
@@ -164,6 +171,15 @@ const ContractDetail = () => {
               </div>
             </div>
           </div>
+
+          {/* ✅ Reviews for the OTHER party (shown after completion) */}
+          {contract.status === 'COMPLETED' && (
+            <div className="cd-card">
+              <ReviewList
+                userId={isOwner ? contract.freelancerId._id : contract.clientId._id}
+              />
+            </div>
+          )}
         </div>
 
         <div className="cd-sidebar">
@@ -183,7 +199,7 @@ const ContractDetail = () => {
             </div>
           </div>
 
-          {/* ✅ Payment Status Banner — visible to both parties */}
+          {/* ✅ Payment Status Banner */}
           {contract.hasPayment && (
             <div className={`cd-notice ${contract.paymentStatus === 'COMPLETED' ? 'success' : ''}`}>
               {contract.paymentStatus === 'PENDING' && '⏳ Payment pending'}
@@ -215,7 +231,7 @@ const ContractDetail = () => {
             </div>
           )}
 
-          {/* Sign button — PENDING status */}
+          {/* PENDING — sign button */}
           {contract.status === 'PENDING' && !mySigned && (
             <button
               className="cd-btn-primary"
@@ -232,7 +248,7 @@ const ContractDetail = () => {
             </div>
           )}
 
-          {/* ACTIVE status — client sees payment + complete actions */}
+          {/* ACTIVE — client actions */}
           {contract.status === 'ACTIVE' && isOwner && (
             <>
               {!contract.hasPayment && (
@@ -270,19 +286,29 @@ const ContractDetail = () => {
             </>
           )}
 
-          {/* ACTIVE status — freelancer view */}
+          {/* ACTIVE — freelancer view */}
           {contract.status === 'ACTIVE' && !isOwner && (
             <div className="cd-notice success">
               ✅ Contract is active. Work in progress.
             </div>
           )}
 
-          {/* COMPLETED */}
+          {/* ✅ COMPLETED — banner + review form */}
           {contract.status === 'COMPLETED' && (
-            <div className="cd-notice success">
-              ✅ Contract completed on{' '}
-              {new Date(contract.completedAt).toLocaleDateString()}
-            </div>
+            <>
+              <div className="cd-notice success">
+                ✅ Contract completed on{' '}
+                {new Date(contract.completedAt).toLocaleDateString()}
+              </div>
+
+              {!myReview ? (
+                <ReviewForm contractId={contract._id} onSubmitted={load} />
+              ) : (
+                <div className="cd-notice success" style={{ marginTop: '0.5rem' }}>
+                  ✅ You rated this {myReview.rating}/5
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

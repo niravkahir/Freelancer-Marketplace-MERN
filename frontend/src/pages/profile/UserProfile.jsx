@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import api from '../../services/api';
+import ReviewList from '../../components/ReviewList';
 import './Profile.css';
 
 const UserProfile = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -18,6 +20,8 @@ const UserProfile = () => {
         const { data } = await api.get(`/users/${id}/profile`);
         setUser(data.user);
         setProfile(data.profile);
+        setRating(data.rating || 0);
+        setTotalReviews(data.totalReviews || 0);
       } catch (err) {
         setError(err.response?.data?.message || 'User not found');
       } finally {
@@ -36,7 +40,6 @@ const UserProfile = () => {
 
   return (
     <div className="profile-page">
-      {/* Header */}
       <div className="profile-header">
         <div className="profile-avatar">
           {user.name?.charAt(0).toUpperCase()}
@@ -51,7 +54,9 @@ const UserProfile = () => {
           <div className="profile-meta">
             <span className="role-badge">{user.role}</span>
             {profile?.location && <span>📍 {profile.location}</span>}
-            {isClient && profile?.verified && <span className="verified">✅ Verified</span>}
+            {isClient && profile?.verified && (
+              <span className="verified">✅ Verified</span>
+            )}
           </div>
         </div>
       </div>
@@ -81,9 +86,17 @@ const UserProfile = () => {
               <h3>STATS</h3>
               <p><strong>Hourly Rate:</strong> ₹{profile?.hourlyRate || 0}/hr</p>
               <p><strong>Experience:</strong> {profile?.experienceYears || 0} years</p>
-              <p><strong>Rating:</strong> ⭐ {profile?.rating || 0}/5</p>
+              <p>
+                <strong>Rating:</strong>{' '}
+                ⭐ {rating > 0 ? `${rating}/5` : 'No rating yet'}
+                {totalReviews > 0 &&
+                  ` (${totalReviews} review${totalReviews !== 1 ? 's' : ''})`}
+              </p>
               <p><strong>Projects Completed:</strong> {profile?.projectsCompleted || 0}</p>
-              <p><strong>Availability:</strong> {profile?.isAvailable ? '✅ Available' : '❌ Not Available'}</p>
+              <p>
+                <strong>Availability:</strong>{' '}
+                {profile?.isAvailable ? '✅ Available' : '❌ Not Available'}
+              </p>
             </div>
 
             <div className="profile-card">
@@ -108,7 +121,9 @@ const UserProfile = () => {
                       <h4>{p.title}</h4>
                       <p>{p.description}</p>
                       {p.link && (
-                        <a href={p.link} target="_blank" rel="noreferrer">View →</a>
+                        <a href={p.link} target="_blank" rel="noreferrer">
+                          View →
+                        </a>
                       )}
                     </div>
                   ))}
@@ -122,7 +137,9 @@ const UserProfile = () => {
               <h3>EDUCATION</h3>
               {profile?.education?.length > 0 ? (
                 profile.education.map((e, i) => (
-                  <p key={i}><strong>{e.degree}</strong> — {e.institution} ({e.year})</p>
+                  <p key={i}>
+                    <strong>{e.degree}</strong> — {e.institution} ({e.year})
+                  </p>
                 ))
               ) : (
                 <p className="empty">No education added</p>
@@ -133,7 +150,9 @@ const UserProfile = () => {
               <h3>CERTIFICATIONS</h3>
               {profile?.certifications?.length > 0 ? (
                 profile.certifications.map((c, i) => (
-                  <p key={i}><strong>{c.name}</strong> — {c.issuer} ({c.year})</p>
+                  <p key={i}>
+                    <strong>{c.name}</strong> — {c.issuer} ({c.year})
+                  </p>
                 ))
               ) : (
                 <p className="empty">No certifications added</p>
@@ -150,6 +169,12 @@ const UserProfile = () => {
               <p><strong>Website:</strong> {profile?.companyWebsite || 'Not added'}</p>
               <p><strong>Industry:</strong> {profile?.industry || 'Not added'}</p>
               <p><strong>Size:</strong> {profile?.companySize || 'Not added'}</p>
+              <p>
+                <strong>Rating:</strong>{' '}
+                ⭐ {rating > 0 ? `${rating}/5` : 'No rating yet'}
+                {totalReviews > 0 &&
+                  ` (${totalReviews} review${totalReviews !== 1 ? 's' : ''})`}
+              </p>
             </div>
 
             <div className="profile-card">
@@ -158,10 +183,10 @@ const UserProfile = () => {
             </div>
           </>
         )}
-      </div>
 
-      <div className="profile-page" style={{ padding: 0 }}>
-        <button className="btn-back" onClick={() => navigate(-1)}>← Back</button>
+        <div className="profile-card" style={{ gridColumn: '1 / -1' }}>
+          <ReviewList userId={id} />
+        </div>
       </div>
     </div>
   );
