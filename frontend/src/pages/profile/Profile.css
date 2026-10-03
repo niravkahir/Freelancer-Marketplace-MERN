@@ -229,6 +229,18 @@
   border-color: var(--gold);
 }
 
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.pending-verify {
+  color: #eab308;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 600px) {
   .profile-header { flex-direction: column; text-align: center; }
   .profile-meta { justify-content: center; }

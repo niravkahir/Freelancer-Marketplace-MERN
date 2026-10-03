@@ -2,7 +2,6 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const http = require('http');
-const reviewRoutes = require('./routes/reviewRoutes');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
@@ -52,7 +51,9 @@ const skillRoutes = require('./routes/skillRoutes');
 const contractRoutes = require('./routes/contractRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 app.get('/', (req, res) => {
     res.send('🚀 Freelancer Marketplace API is running...');
@@ -71,9 +72,11 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use(errorHandler);
-app.use('/api/reviews', reviewRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 

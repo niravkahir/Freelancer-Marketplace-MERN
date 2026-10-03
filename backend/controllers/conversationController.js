@@ -3,9 +3,6 @@ const Message = require('../models/Message');
 const Proposal = require('../models/Proposal');
 const Project = require('../models/Project');
 
-// @desc    Get or create conversation with another user about a project
-// @route   POST /api/conversations
-// @access  Private
 exports.getOrCreateConversation = async (req, res) => {
     try {
         const { otherUserId, projectId } = req.body;
@@ -17,7 +14,7 @@ exports.getOrCreateConversation = async (req, res) => {
             });
         }
 
-        // Find or create
+        // ✅ Try to find existing first
         let conversation = await Conversation.findOne({
             participants: { $all: [req.user.id, otherUserId] },
             relatedProject: projectId
@@ -25,39 +22,64 @@ exports.getOrCreateConversation = async (req, res) => {
             .populate('participants', 'name email profilePicture role')
             .populate('relatedProject', 'title status');
 
-        if (!conversation) {
-            // Verify permission: client must own project OR freelancer must have applied
-            const project = await Project.findById(projectId);
-            if (!project) {
-                return res.status(404).json({ success: false, message: 'Project not found' });
-            }
-
-            const isClient = project.clientId.toString() === req.user.id;
-            const isFreelancerWhoApplied = await Proposal.findOne({
-                projectId,
-                freelancerId: req.user.id
-            });
-
-            if (!isClient && !isFreelancerWhoApplied && req.user.role !== 'ADMIN') {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You can only chat about projects you are involved in'
-                });
-            }
-
-            conversation = await Conversation.create({
-                participants: [req.user.id, otherUserId],
-                relatedProject: projectId,
-                chatMode: 'PRE_HIRE'
-            });
-
-            conversation = await Conversation.findById(conversation._id)
-                .populate('participants', 'name email profilePicture role')
-                .populate('relatedProject', 'title status');
+        if (conversation) {
+            return res.status(200).json({ success: true, conversation });
         }
+
+        // Verify permission
+        const project = await Project.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ success: false, message: 'Project not found' });
+        }
+
+        const isClient = project.clientId.toString() === req.user.id;
+        const isFreelancerWhoApplied = await Proposal.findOne({
+            projectId,
+            freelancerId: req.user.id
+        });
+
+        if (!isClient && !isFreelancerWhoApplied && req.user.role !== 'ADMIN') {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only chat about projects you are involved in'
+            });
+        }
+
+        // ✅ Use findOneAndUpdate with upsert — atomic operation (no race condition)
+        conversation = await Conversation.findOneAndUpdate(
+            {
+                participants: { $all: [req.user.id, otherUserId] },
+                relatedProject: projectId
+            },
+            {
+                $setOnInsert: {
+                    participants: [req.user.id, otherUserId],
+                    relatedProject: projectId,
+                    chatMode: 'PRE_HIRE',
+                    isLocked: false
+                }
+            },
+            { upsert: true, new: true }
+        )
+            .populate('participants', 'name email profilePicture role')
+            .populate('relatedProject', 'title status');
 
         res.status(200).json({ success: true, conversation });
     } catch (error) {
+        // ✅ Handle duplicate key gracefully (race condition where 2nd create tries)
+        if (error.code === 11000) {
+            const conversation = await Conversation.findOne({
+                participants: { $all: [req.user.id, otherUserId] },
+                relatedProject: projectId
+            })
+                .populate('participants', 'name email profilePicture role')
+                .populate('relatedProject', 'title status');
+
+            if (conversation) {
+                return res.status(200).json({ success: true, conversation });
+            }
+        }
+        console.error('Get or create conversation error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

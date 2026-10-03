@@ -54,22 +54,31 @@ exports.submitProposal = async (req, res) => {
             $inc: { proposalsCount: 1 }
         });
 
-        // ✅ Create PRE_HIRE conversation
-        const existingConv = await Conversation.findOne({
-            participants: { $all: [project.clientId, req.user.id] },
-            relatedProject: project._id
-        });
-
-        if (!existingConv) {
-            await Conversation.create({
-                participants: [project.clientId, req.user.id],
-                relatedProject: project._id,
-                chatMode: 'PRE_HIRE',
-                isLocked: false
-            });
+        // ✅ Create PRE_HIRE conversation — upsert (race-safe)
+        try {
+            await Conversation.findOneAndUpdate(
+                {
+                    participants: { $all: [project.clientId, req.user.id] },
+                    relatedProject: project._id
+                },
+                {
+                    $setOnInsert: {
+                        participants: [project.clientId, req.user.id],
+                        relatedProject: project._id,
+                        chatMode: 'PRE_HIRE',
+                        isLocked: false
+                    }
+                },
+                { upsert: true, new: true }
+            );
+        } catch (err) {
+            // Ignore duplicate key error — conversation already exists (race condition)
+            if (err.code !== 11000) {
+                console.error('Conversation create error:', err);
+            }
         }
 
-        // ✅ Notify client + broadcast changes
+        // ✅ Notify client
         try {
             await Notification.create({
                 userId: project.clientId,
@@ -194,6 +203,7 @@ exports.acceptProposal = async (req, res) => {
         proposal.status = 'Accepted';
         await proposal.save();
 
+        // Auto-reject all OTHER pending proposals
         await Proposal.updateMany(
             {
                 projectId: proposal.projectId,
@@ -209,28 +219,35 @@ exports.acceptProposal = async (req, res) => {
         project.chatLocked = false;
         await project.save();
 
-        let conversation = await Conversation.findOne({
-            participants: { $all: [project.clientId, proposal.freelancerId] },
-            relatedProject: project._id
-        });
-
-        if (conversation) {
-            conversation.chatMode = 'POST_HIRE';
-            conversation.isLocked = false;
-            conversation.lockedBy = null;
-            conversation.lockedAt = null;
-            conversation.lockReason = null;
-            await conversation.save();
-        } else {
-            await Conversation.create({
-                participants: [project.clientId, proposal.freelancerId],
-                relatedProject: project._id,
-                chatMode: 'POST_HIRE',
-                isLocked: false
-            });
+        // ✅ Upgrade conversation to POST_HIRE — upsert (race-safe)
+        try {
+            await Conversation.findOneAndUpdate(
+                {
+                    participants: { $all: [project.clientId, proposal.freelancerId] },
+                    relatedProject: project._id
+                },
+                {
+                    $set: {
+                        chatMode: 'POST_HIRE',
+                        isLocked: false,
+                        lockedBy: null,
+                        lockedAt: null,
+                        lockReason: null
+                    },
+                    $setOnInsert: {
+                        participants: [project.clientId, proposal.freelancerId],
+                        relatedProject: project._id
+                    }
+                },
+                { upsert: true, new: true }
+            );
+        } catch (err) {
+            if (err.code !== 11000) {
+                console.error('Conversation error:', err);
+            }
         }
 
-        // ✅ Notify + broadcast
+        // ✅ Notify freelancer
         try {
             await Notification.create({
                 userId: proposal.freelancerId,

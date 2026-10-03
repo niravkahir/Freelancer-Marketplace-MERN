@@ -1,28 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import './CreateProject.css';
 
 const CreateProject = () => {
   const navigate = useNavigate();
+  const { isClient } = useAuth();
 
+  const [categories, setCategories] = useState([]);
+  const [isVerified, setIsVerified] = useState(true);
   const [form, setForm] = useState({
     title: '',
     description: '',
     budget: '',
-    category: 'Web Development',
+    category: '',
     subCategory: '',
     skillsRequired: '',
     experienceLevel: 'Intermediate',
-    projectType: 'Fixed',
     deadline: '',
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ✅ Today for min constraint
   const today = new Date().toISOString().split('T')[0];
+
+  // ✅ Load categories + check verification
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const [catRes, profRes] = await Promise.all([
+          api.get('/categories'),
+          api.get('/users/profile'),
+        ]);
+
+        const cats = catRes.data.categories || [];
+        setCategories(cats);
+
+        if (cats.length > 0 && !form.category) {
+          setForm((f) => ({ ...f, category: cats[0].name }));
+        }
+
+        // Check client verification
+        if (isClient) {
+          setIsVerified(profRes.data.profile?.verified || false);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    init();
+  }, [isClient]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -31,7 +60,11 @@ const CreateProject = () => {
     e.preventDefault();
     setError('');
 
-    // ✅ Frontend guard
+    if (!isVerified) {
+      setError('Your account is not verified yet. Please wait for admin approval.');
+      return;
+    }
+
     if (form.deadline < today) {
       setError('Deadline must be a future date');
       return;
@@ -51,7 +84,6 @@ const CreateProject = () => {
           .map((s) => s.trim())
           .filter(Boolean),
         experienceLevel: form.experienceLevel,
-        projectType: form.projectType,
         deadline: form.deadline,
       };
 
@@ -63,6 +95,25 @@ const CreateProject = () => {
       setLoading(false);
     }
   };
+
+  // ✅ Block unverified clients
+  if (isClient && !isVerified) {
+    return (
+      <div className="create-project-page">
+        <div className="create-container">
+          <div className="create-header">
+            <h1>POST A NEW PROJECT</h1>
+          </div>
+          <div className="create-error" style={{ textAlign: 'center', padding: '2rem' }}>
+            ⏳ Your account is pending verification.
+            <br />
+            <br />
+            Please complete your profile. An admin will verify your account shortly.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="create-project-page">
@@ -125,6 +176,7 @@ const CreateProject = () => {
           </div>
 
           <div className="form-row">
+            {/* ✅ Category from API */}
             <div className="form-group">
               <label>Category *</label>
               <select
@@ -133,12 +185,10 @@ const CreateProject = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="Web Development">Web Development</option>
-                <option value="Mobile Development">Mobile Development</option>
-                <option value="Design">Design</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Writing">Writing</option>
-                <option value="Data Science">Data Science</option>
+                {categories.length === 0 && <option value="">No categories available</option>}
+                {categories.map((c) => (
+                  <option key={c._id} value={c.name}>{c.name}</option>
+                ))}
               </select>
             </div>
             <div className="form-group">
@@ -176,17 +226,7 @@ const CreateProject = () => {
                 <option value="Expert">Expert</option>
               </select>
             </div>
-            <div className="form-group">
-              <label>Project Type</label>
-              <select
-                name="projectType"
-                value={form.projectType}
-                onChange={handleChange}
-              >
-                <option value="Fixed">Fixed Price</option>
-                <option value="Hourly">Hourly</option>
-              </select>
-            </div>
+            {/* ❌ Project Type removed — always Fixed */}
           </div>
 
           <div className="create-actions">

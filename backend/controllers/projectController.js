@@ -17,9 +17,17 @@ exports.createProject = async (req, res) => {
             subCategory,
             skillsRequired,
             experienceLevel,
-            projectType,
             deadline
         } = req.body;
+
+        // ✅ Check client is verified
+        const clientProfile = await ClientProfile.findOne({ userId: req.user.id });
+        if (!clientProfile || !clientProfile.verified) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account is not verified yet. Please wait for admin approval.'
+            });
+        }
 
         if (!title || !description || !budget || !category || !skillsRequired || !deadline) {
             return res.status(400).json({
@@ -44,16 +52,16 @@ exports.createProject = async (req, res) => {
             subCategory: subCategory || '',
             skillsRequired,
             experienceLevel: experienceLevel || 'Intermediate',
-            projectType: projectType || 'Fixed',
+            projectType: 'Fixed',   // ✅ Always Fixed
             deadline,
             status: 'Open'
         });
 
-        // ✅ UPDATE CLIENT PROFILE STATS
+        // Update client stats
         const allProjects = await Project.find({ clientId: req.user.id });
         const totalBudget = allProjects.reduce((sum, p) => sum + (p.budget || 0), 0);
-        const avgBudget = allProjects.length > 0 
-            ? Math.round(totalBudget / allProjects.length) 
+        const avgBudget = allProjects.length > 0
+            ? Math.round(totalBudget / allProjects.length)
             : 0;
 
         await ClientProfile.findOneAndUpdate(
@@ -152,7 +160,22 @@ exports.getProjectById = async (req, res) => {
 // @access  Private (Client who created it)
 exports.updateProject = async (req, res) => {
     try {
-        let project = await Project.findOne({ projectId: req.params.id });
+        const { id } = req.params;
+
+        // ✅ Accept both ObjectId (24-char) or numeric projectId
+        let query;
+        if (/^[0-9a-fA-F]{24}$/.test(id)) {
+            query = { _id: id };
+        } else if (!isNaN(id)) {
+            query = { projectId: Number(id) };
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid project ID'
+            });
+        }
+
+        let project = await Project.findOne(query);
 
         if (!project) {
             return res.status(404).json({
@@ -169,11 +192,29 @@ exports.updateProject = async (req, res) => {
             });
         }
 
-        project = await Project.findOneAndUpdate(
-            { projectId: req.params.id },
-            req.body,
-            { new: true, runValidators: true }
-        );
+        // ✅ Only allow these fields to be updated
+        const allowedUpdates = [
+            'title',
+            'description',
+            'budget',
+            'category',
+            'subCategory',
+            'skillsRequired',
+            'experienceLevel',
+            'deadline'
+        ];
+
+        const updates = {};
+        allowedUpdates.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                updates[field] = req.body[field];
+            }
+        });
+
+        project = await Project.findOneAndUpdate(query, updates, {
+            new: true,
+            runValidators: true,
+        });
 
         res.status(200).json({
             success: true,

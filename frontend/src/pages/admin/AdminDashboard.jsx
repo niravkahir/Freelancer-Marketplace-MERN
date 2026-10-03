@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useSocket } from '../../contexts/SocketContext';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { socket } = useSocket();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,9 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -45,6 +48,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* Stats Grid */}
       <div className="ad-stats-grid">
         <div className="ad-stat">
           <span className="ad-stat-label">TOTAL USERS</span>
@@ -77,14 +81,23 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* Nav Cards */}
       <div className="ad-nav-grid">
         <Link to="/admin/users" className="ad-nav-card">
           <h3>👥 Manage Users</h3>
-          <p>View, block, or delete user accounts</p>
+          <p>View, block, verify, or delete accounts</p>
         </Link>
         <Link to="/admin/projects" className="ad-nav-card">
           <h3>📁 Manage Projects</h3>
           <p>Review and moderate projects</p>
+        </Link>
+        <Link to="/admin/skills" className="ad-nav-card">
+          <h3>🛠️ Manage Skills</h3>
+          <p>Add skills freelancers can pick from</p>
+        </Link>
+        <Link to="/admin/categories" className="ad-nav-card">
+          <h3>📂 Manage Categories</h3>
+          <p>Add categories clients can pick from</p>
         </Link>
         <Link to="/admin/support" className="ad-nav-card">
           <h3>🎫 Support Tickets</h3>
@@ -92,23 +105,33 @@ const AdminDashboard = () => {
         </Link>
       </div>
 
+      {/* Recent Signups */}
       <div className="ad-card">
-        <h3>RECENT SIGNUPS</h3>
+        <h3>RECENT SIGNUPS ({stats.recentUsers?.length || 0})</h3>
         <div className="ad-users-list">
-          {stats.recentUsers?.map((u) => (
-            <div key={u._id} className="ad-user-row">
-              <div className="ad-user-avatar">
-                {u.name?.charAt(0).toUpperCase()}
+          {stats.recentUsers?.length === 0 ? (
+            <div className="ad-state">No users yet</div>
+          ) : (
+            stats.recentUsers?.map((u) => (
+              <div
+                key={u._id}
+                className="ad-user-row"
+                onClick={() => navigate(`/users/${u._id}`)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="ad-user-avatar">
+                  {u.name?.charAt(0).toUpperCase()}
+                </div>
+                <div className="ad-user-info">
+                  <strong>{u.name}</strong>
+                  <span>{u.email}</span>
+                </div>
+                <span className={`ad-role ad-role-${u.role.toLowerCase()}`}>
+                  {u.role}
+                </span>
               </div>
-              <div className="ad-user-info">
-                <strong>{u.name}</strong>
-                <span>{u.email}</span>
-              </div>
-              <span className={`ad-role ad-role-${u.role.toLowerCase()}`}>
-                {u.role}
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

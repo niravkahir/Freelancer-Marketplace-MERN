@@ -3,6 +3,7 @@ const FreelancerProfile = require('../models/FreelancerProfile');
 const ClientProfile = require('../models/ClientProfile');
 const Project = require('../models/Project');
 const Review = require('../models/Review');
+const cloudinary = require('../config/cloudinary');
 
 // @desc    Get my own profile
 // @route   GET /api/users/profile
@@ -35,15 +36,41 @@ exports.updateProfile = async (req, res) => {
     try {
         const { name, phone, profilePicture } = req.body;
 
+        // ✅ Fetch existing user to check old profile picture
+        const existingUser = await User.findById(req.user.id);
+        if (!existingUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // ✅ If new profile picture provided, delete old one from Cloudinary
+        if (
+            profilePicture &&
+            existingUser.profilePicture &&
+            existingUser.profilePicture !== profilePicture &&
+            existingUser.profilePicture.includes('cloudinary')
+        ) {
+            try {
+                // Extract publicId from URL
+                // URL: https://res.cloudinary.com/cloud_name/image/upload/v123/folder/file.jpg
+                const urlParts = existingUser.profilePicture.split('/');
+                const fileWithExt = urlParts[urlParts.length - 1];
+                const fileName = fileWithExt.split('.')[0];
+                const folder = urlParts[urlParts.length - 2];
+                const publicId = `${folder}/${fileName}`;
+
+                await cloudinary.uploader.destroy(publicId);
+            } catch (err) {
+                console.error('Old image delete error:', err);
+                // Don't block the update if deletion fails
+            }
+        }
+
+        // ✅ Update user basic fields
         const user = await User.findByIdAndUpdate(
             req.user.id,
             { name, phone, profilePicture },
             { new: true, runValidators: true }
         ).select('-password');
-
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
 
         let profile = null;
         const {

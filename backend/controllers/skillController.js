@@ -28,7 +28,7 @@ exports.createSkill = async (req, res) => {
 
 exports.getAllSkills = async (req, res) => {
     try {
-        const skills = await Skill.find({ isActive: true }).sort({ popularity: -1 });
+        const skills = await Skill.find({ isActive: true }).sort({ name: 1 });
         res.status(200).json({
             success: true,
             count: skills.length,
@@ -62,6 +62,23 @@ exports.searchSkills = async (req, res) => {
             success: true,
             count: skills.length,
             skills
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.deleteSkill = async (req, res) => {
+    try {
+        const skill = await Skill.findById(req.params.id);
+        if (!skill) {
+            return res.status(404).json({ success: false, message: 'Skill not found' });
+        }
+        skill.isActive = false;
+        await skill.save();
+        res.status(200).json({
+            success: true,
+            message: 'Skill deleted successfully'
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

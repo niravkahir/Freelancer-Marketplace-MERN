@@ -22,8 +22,8 @@
 
 .auth-home-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
 }
 
 .dash-card {
@@ -70,4 +70,22 @@
   color: var(--bg-primary);
   border-color: var(--gold);
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}
+
+@media (min-width: 1200px) {
+  .auth-home-cards.admin-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-home-cards.admin-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .auth-home-cards.admin-grid {
+    grid-template-columns: 1fr;
+  }
 }

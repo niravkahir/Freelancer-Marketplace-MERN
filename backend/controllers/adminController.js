@@ -6,6 +6,8 @@ const SupportTicket = require('../models/SupportTicket');
 const FreelancerProfile = require('../models/FreelancerProfile');
 const ClientProfile = require('../models/ClientProfile');
 const Notification = require('../models/Notification');
+const Skill = require('../models/Skill');
+const Category = require('../models/Category');
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
@@ -42,7 +44,7 @@ exports.getStats = async (req, res) => {
         );
 
         const recentUsers = await User.find()
-            .select('name email role createdAt')
+            .select('_id name email role createdAt')
             .sort({ createdAt: -1 })
             .limit(5);
 
@@ -64,6 +66,7 @@ exports.getStats = async (req, res) => {
             },
         });
     } catch (error) {
+        console.error('Get stats error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -88,10 +91,20 @@ exports.getAllUsers = async (req, res) => {
             .select('-password')
             .sort({ createdAt: -1 });
 
+        const usersWithVerified = await Promise.all(
+            users.map(async (u) => {
+                if (u.role === 'CLIENT') {
+                    const profile = await ClientProfile.findOne({ userId: u._id });
+                    return { ...u.toObject(), isVerified: profile?.verified || false };
+                }
+                return u.toObject();
+            })
+        );
+
         res.status(200).json({
             success: true,
-            count: users.length,
-            users,
+            count: usersWithVerified.length,
+            users: usersWithVerified,
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -349,6 +362,164 @@ exports.resolveTicket = async (req, res) => {
             success: true,
             message: 'Ticket resolved',
             ticket,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Create skill
+// @route   POST /api/admin/skills
+// @access  Private (Admin)
+exports.createSkill = async (req, res) => {
+    try {
+        const { name, category, description } = req.body;
+
+        if (!name || !category) {
+            return res.status(400).json({ success: false, message: 'Name and category required' });
+        }
+
+        const existing = await Skill.findOne({ name: { $regex: `^${name}$`, $options: 'i' } });
+        if (existing) {
+            return res.status(400).json({ success: false, message: 'Skill already exists' });
+        }
+
+        const skill = await Skill.create({ name, category, description });
+
+        res.status(201).json({ success: true, message: 'Skill added', skill });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get all skills
+// @route   GET /api/admin/skills
+// @access  Private (Admin)
+exports.getAllSkills = async (req, res) => {
+    try {
+        const skills = await Skill.find().sort({ name: 1 });
+        res.status(200).json({ success: true, count: skills.length, skills });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Delete skill
+// @route   DELETE /api/admin/skills/:id
+// @access  Private (Admin)
+exports.deleteSkill = async (req, res) => {
+    try {
+        const skill = await Skill.findById(req.params.id);
+        if (!skill) {
+            return res.status(404).json({ success: false, message: 'Skill not found' });
+        }
+        await skill.deleteOne();
+        res.status(200).json({ success: true, message: 'Skill deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ================== CATEGORIES ==================
+
+// @desc    Create category
+// @route   POST /api/admin/categories
+// @access  Private (Admin)
+exports.createCategory = async (req, res) => {
+    try {
+        const { name, description } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Name required' });
+        }
+
+        const existing = await Category.findOne({ name: { $regex: `^${name}$`, $options: 'i' } });
+        if (existing) {
+            return res.status(400).json({ success: false, message: 'Category already exists' });
+        }
+
+        const category = await Category.create({ name, description });
+
+        res.status(201).json({ success: true, message: 'Category added', category });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get all categories
+// @route   GET /api/admin/categories
+// @access  Private (Admin)
+exports.getAllCategories = async (req, res) => {
+    try {
+        const categories = await Category.find().sort({ name: 1 });
+        res.status(200).json({ success: true, count: categories.length, categories });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Delete category
+// @route   DELETE /api/admin/categories/:id
+// @access  Private (Admin)
+exports.deleteCategory = async (req, res) => {
+    try {
+        const category = await Category.findById(req.params.id);
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
+        }
+        await category.deleteOne();
+        res.status(200).json({ success: true, message: 'Category deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// ================== CLIENT VERIFY ==================
+
+// @desc    Toggle client verification
+// @route   PUT /api/admin/users/:id/verify
+// @access  Private (Admin)
+exports.toggleVerifyClient = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (user.role !== 'CLIENT') {
+            return res.status(400).json({ success: false, message: 'Only clients can be verified' });
+        }
+
+        const profile = await ClientProfile.findOne({ userId: user._id });
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Client profile not found' });
+        }
+
+        profile.verified = !profile.verified;
+        await profile.save();
+
+        // Notify user
+        try {
+            await Notification.create({
+                userId: user._id,
+                type: profile.verified ? 'USER_UNBLOCKED' : 'SYSTEM_UPDATE',
+                title: profile.verified ? 'Account Verified ✅' : 'Verification Removed',
+                message: profile.verified
+                    ? 'Your account is verified. You can now post projects.'
+                    : 'Your verification has been removed.',
+                link: '/profile',
+            });
+
+            if (req.io) {
+                req.io.to(user._id.toString()).emit('newNotification');
+            }
+        } catch (e) {}
+
+        res.status(200).json({
+            success: true,
+            message: profile.verified ? 'Client verified' : 'Verification removed',
+            verified: profile.verified,
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

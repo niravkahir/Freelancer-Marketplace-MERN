@@ -9,7 +9,6 @@ import Register from './pages/auth/Register';
 import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/profile/Profile';
 import EditProfile from './pages/profile/EditProfile';
-import UserProfile from './pages/profile/UserProfile';
 
 import Projects from './pages/projects/Projects';
 import CreateProject from './pages/projects/CreateProject';
@@ -33,13 +32,15 @@ import Payments from './pages/payments/Payments';
 import PaymentDetail from './pages/payments/PaymentDetail';
 
 import Support from './pages/support/Support';
-import TicketDetail from './pages/Support/TicketDetail';
+import TicketDetail from './pages/support/TicketDetail';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageProjects from './pages/admin/ManageProjects';
 import ManageTickets from './pages/admin/ManageTickets';
 import AdminTicketDetail from './pages/admin/AdminTicketDetail';
+import ManageSkills from './pages/admin/ManageSkills';
+import ManageCategories from './pages/admin/ManageCategories';
 
 import './App.css';
 
@@ -109,8 +110,8 @@ function App() {
             element={<ProtectedRoute><EditProfile /></ProtectedRoute>}
           />
 
-          {/* Public user profile */}
-          <Route path="/users/:id" element={<UserProfile />} />
+          {/* ✅ Public user profile — uses same Profile.jsx */}
+          <Route path="/users/:id" element={<Profile />} />
 
           {/* ---------- Proposals ---------- */}
           <Route
@@ -176,7 +177,7 @@ function App() {
             element={<ProtectedRoute><TicketDetail /></ProtectedRoute>}
           />
 
-            {/* ---------- Admin ---------- */}
+          {/* ---------- Admin ---------- */}
           <Route
             path="/admin"
             element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>}
@@ -196,6 +197,14 @@ function App() {
           <Route
             path="/admin/support/:id"
             element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminTicketDetail /></ProtectedRoute>}
+          />
+          <Route
+            path="/admin/skills"
+            element={<ProtectedRoute allowedRoles={['ADMIN']}><ManageSkills /></ProtectedRoute>}
+          />
+          <Route
+            path="/admin/categories"
+            element={<ProtectedRoute allowedRoles={['ADMIN']}><ManageCategories /></ProtectedRoute>}
           />
         </Routes>
       </main>

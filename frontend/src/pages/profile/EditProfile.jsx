@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -7,21 +7,21 @@ import './EditProfile.css';
 const EditProfile = () => {
   const { isFreelancer, isClient } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
     name: '',
     phone: '',
-    // Freelancer
+    profilePicture: '',
     title: '',
     bio: '',
-    skills: '',
     hourlyRate: '',
     experienceYears: '',
     location: '',
     languages: '',
     isAvailable: true,
-    education: [],   // ✅ NEW
-    // Client
+    education: [],
+    portfolio: [],
     companyName: '',
     companyWebsite: '',
     companyDescription: '',
@@ -31,8 +31,11 @@ const EditProfile = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [selectedSkills, setSelectedSkills] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -45,21 +48,26 @@ const EditProfile = () => {
           ...f,
           name: u.name || '',
           phone: u.phone || '',
+          profilePicture: u.profilePicture || '',
           title: p.title || '',
           bio: p.bio || '',
-          skills: (p.skills || []).join(', '),
           hourlyRate: p.hourlyRate ?? '',
           experienceYears: p.experienceYears ?? '',
           location: p.location || '',
           languages: (p.languages || []).join(', '),
           isAvailable: p.isAvailable ?? true,
-          education: p.education || [],   // ✅ NEW
+          education: p.education || [],
+          portfolio: p.portfolio || [],
           companyName: p.companyName || '',
           companyWebsite: p.companyWebsite || '',
           companyDescription: p.companyDescription || '',
           industry: p.industry || '',
           companySize: p.companySize || '1-10',
         }));
+
+        if (p.skills && p.skills.length > 0) {
+          setSelectedSkills(p.skills);
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load profile');
       } finally {
@@ -69,12 +77,73 @@ const EditProfile = () => {
     load();
   }, []);
 
+  // Load available skills (admin's list) for freelancers
+  useEffect(() => {
+    if (!isFreelancer) return;
+    const loadSkills = async () => {
+      try {
+        const { data } = await api.get('/skills');
+        setAvailableSkills(data.skills || []);
+      } catch (e) {}
+    };
+    loadSkills();
+  }, [isFreelancer]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // ✅ Education handlers
+  const toggleSkill = (name) => {
+    setSelectedSkills((prev) =>
+      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+    );
+  };
+
+  // ============ PROFILE PICTURE ============
+  const handleFileSelect = () => fileInputRef.current?.click();
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large. Max 5MB.');
+      return;
+    }
+
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Only JPG, PNG, or WebP allowed.');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const { data } = await api.post('/upload/profile-picture', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setForm((f) => ({ ...f, profilePicture: data.url }));
+      setSuccess('Image uploaded! Click Save Changes to apply.');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemovePicture = () => {
+    setForm((f) => ({ ...f, profilePicture: '' }));
+  };
+
+  // ============ EDUCATION ============
   const addEducation = () => {
     setForm((f) => ({
       ...f,
@@ -97,6 +166,29 @@ const EditProfile = () => {
     });
   };
 
+  // ============ PORTFOLIO ============
+  const addPortfolio = () => {
+    setForm((f) => ({
+      ...f,
+      portfolio: [...f.portfolio, { title: '', description: '', link: '' }],
+    }));
+  };
+
+  const removePortfolio = (index) => {
+    setForm((f) => ({
+      ...f,
+      portfolio: f.portfolio.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updatePortfolio = (index, field, value) => {
+    setForm((f) => {
+      const updated = [...f.portfolio];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...f, portfolio: updated };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -104,25 +196,35 @@ const EditProfile = () => {
     setSaving(true);
 
     try {
-      const payload = { name: form.name, phone: form.phone };
+      const payload = {
+        name: form.name,
+        phone: form.phone,
+        profilePicture: form.profilePicture,
+      };
 
       if (isFreelancer) {
         Object.assign(payload, {
           title: form.title,
           bio: form.bio,
-          skills: form.skills.split(',').map((s) => s.trim()).filter(Boolean),
+          skills: selectedSkills,
           hourlyRate: Number(form.hourlyRate) || 0,
           experienceYears: Number(form.experienceYears) || 0,
           location: form.location,
           languages: form.languages.split(',').map((s) => s.trim()).filter(Boolean),
           isAvailable: form.isAvailable,
-          // ✅ Clean education before sending
           education: form.education
             .filter((e) => e.degree && e.institution)
             .map((e) => ({
               degree: e.degree,
               institution: e.institution,
               year: Number(e.year) || null,
+            })),
+          portfolio: form.portfolio
+            .filter((p) => p.title && p.link)
+            .map((p) => ({
+              title: p.title,
+              description: p.description || '',
+              link: p.link,
             })),
         });
       }
@@ -161,6 +263,51 @@ const EditProfile = () => {
         {success && <div className="edit-success">{success}</div>}
 
         <form onSubmit={handleSubmit} className="edit-form">
+          {/* PROFILE PICTURE */}
+          <h2 className="section-title">PROFILE PICTURE</h2>
+          <div className="avatar-upload">
+            <div className="avatar-preview">
+              {form.profilePicture ? (
+                <img src={form.profilePicture} alt="Profile" />
+              ) : (
+                <span className="avatar-initial">
+                  {form.name?.charAt(0).toUpperCase() || '?'}
+                </span>
+              )}
+            </div>
+
+            <div className="avatar-actions">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                className="btn-upload"
+                onClick={handleFileSelect}
+                disabled={uploading}
+              >
+                {uploading ? 'Uploading...' : '📷 Upload Picture'}
+              </button>
+
+              {form.profilePicture && (
+                <button
+                  type="button"
+                  className="btn-remove-pic"
+                  onClick={handleRemovePicture}
+                  disabled={uploading}
+                >
+                  Remove
+                </button>
+              )}
+
+              <p className="upload-hint">JPG, PNG, or WebP · Max 5MB</p>
+            </div>
+          </div>
+
           {/* BASIC */}
           <h2 className="section-title">BASIC INFORMATION</h2>
 
@@ -183,7 +330,12 @@ const EditProfile = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Professional Title</label>
-                  <input name="title" value={form.title} onChange={handleChange} placeholder="Full Stack Developer" />
+                  <input
+                    name="title"
+                    value={form.title}
+                    onChange={handleChange}
+                    placeholder="Full Stack Developer"
+                  />
                 </div>
                 <div className="form-group">
                   <label>Location</label>
@@ -193,34 +345,73 @@ const EditProfile = () => {
 
               <div className="form-group">
                 <label>Bio</label>
-                <textarea name="bio" rows="4" value={form.bio} onChange={handleChange} placeholder="Tell clients about your experience..." />
+                <textarea
+                  name="bio"
+                  rows="4"
+                  value={form.bio}
+                  onChange={handleChange}
+                  placeholder="Tell clients about your experience..."
+                />
               </div>
 
+              {/* Skills multi-select from admin's list */}
               <div className="form-group">
-                <label>Skills (comma separated)</label>
-                <input name="skills" value={form.skills} onChange={handleChange} placeholder="React, Node.js, MongoDB" />
+                <label>Skills (pick from admin's list)</label>
+                {availableSkills.length === 0 ? (
+                  <p className="empty">No skills available yet. Admin will add some soon.</p>
+                ) : (
+                  <div className="skills-multiselect">
+                    {availableSkills.map((s) => (
+                      <button
+                        key={s._id}
+                        type="button"
+                        className={`skill-option ${selectedSkills.includes(s.name) ? 'selected' : ''}`}
+                        onClick={() => toggleSkill(s.name)}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="form-row">
                 <div className="form-group">
                   <label>Hourly Rate (₹)</label>
-                  <input name="hourlyRate" type="number" min="0" value={form.hourlyRate} onChange={handleChange} />
+                  <input
+                    name="hourlyRate"
+                    type="number"
+                    min="0"
+                    value={form.hourlyRate}
+                    onChange={handleChange}
+                  />
                 </div>
                 <div className="form-group">
                   <label>Years of Experience</label>
-                  <input name="experienceYears" type="number" min="0" max="50" value={form.experienceYears} onChange={handleChange} />
+                  <input
+                    name="experienceYears"
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={form.experienceYears}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
 
               <div className="form-group">
                 <label>Languages (comma separated)</label>
-                <input name="languages" value={form.languages} onChange={handleChange} placeholder="English, Hindi" />
+                <input
+                  name="languages"
+                  value={form.languages}
+                  onChange={handleChange}
+                  placeholder="English, Hindi"
+                />
               </div>
 
-              {/* ✅ EDUCATION SECTION */}
+              {/* Education */}
               <div className="form-group">
                 <label>Education</label>
-
                 {form.education.map((edu, i) => (
                   <div key={i} className="dynamic-row">
                     <input
@@ -239,18 +430,43 @@ const EditProfile = () => {
                       value={edu.year}
                       onChange={(e) => updateEducation(i, 'year', e.target.value)}
                     />
-                    <button
-                      type="button"
-                      className="btn-remove"
-                      onClick={() => removeEducation(i)}
-                    >
+                    <button type="button" className="btn-remove" onClick={() => removeEducation(i)}>
                       ✕
                     </button>
                   </div>
                 ))}
-
                 <button type="button" className="btn-add" onClick={addEducation}>
                   + Add Education
+                </button>
+              </div>
+
+              {/* ✅ Portfolio */}
+              <div className="form-group">
+                <label>Portfolio</label>
+                {form.portfolio.map((p, i) => (
+                  <div key={i} className="dynamic-row">
+                    <input
+                      placeholder="Project title"
+                      value={p.title}
+                      onChange={(e) => updatePortfolio(i, 'title', e.target.value)}
+                    />
+                    <input
+                      placeholder="Description"
+                      value={p.description}
+                      onChange={(e) => updatePortfolio(i, 'description', e.target.value)}
+                    />
+                    <input
+                      placeholder="Link (https://...)"
+                      value={p.link}
+                      onChange={(e) => updatePortfolio(i, 'link', e.target.value)}
+                    />
+                    <button type="button" className="btn-remove" onClick={() => removePortfolio(i)}>
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <button type="button" className="btn-add" onClick={addPortfolio}>
+                  + Add Portfolio
                 </button>
               </div>
 

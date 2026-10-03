@@ -6,88 +6,26 @@ const Dashboard = () => {
   const { user, isClient, isFreelancer, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  // Client cards
- const clientCards = [
-  {
-    title: 'My Projects',
-    desc: 'View and manage your posted projects',
-    btn: 'View Projects',
-    path: '/projects/my',        // ✅ fixed
-  },
-  {
-    title: 'Post a Project',
-    desc: 'Describe your needs and hire talent',
-    btn: 'Post Now',
-    path: '/projects/create',
-  },
-  {
-    title: 'Proposals',
-    desc: 'Review freelancer applications',
-    btn: 'Review',
-    path: '/projects/my',        // ✅ fixed — same page
-  },
-  {
-    title: 'Messages',
-    desc: 'Chat with freelancers',
-    btn: 'Open Inbox',
-    path: '/messages',
-  },
-];
-
-  // Freelancer cards
-  const freelancerCards = [
-    {
-      title: 'Browse Projects',
-      desc: 'Find work that matches your skills',
-      btn: 'Explore',
-      path: '/projects',
-    },
-    {
-      title: 'My Proposals',
-      desc: 'Track your submitted applications',
-      btn: 'View Proposals',
-      path: '/proposals/my',        // future route
-    },
-    {
-      title: 'Active Contracts',
-      desc: 'See your ongoing work',
-      btn: 'View Contracts',
-      path: '/contracts',           // future route
-    },
-    {
-      title: 'Messages',
-      desc: 'Chat with clients',
-      btn: 'Open Inbox',
-      path: '/messages',            // future route
-    },
+  const clientCards = [
+    { title: 'My Projects', desc: 'View and manage your posted projects', btn: 'View Projects', path: '/projects/my' },
+    { title: 'Post a Project', desc: 'Describe your needs and hire talent', btn: 'Post Now', path: '/projects/create' },
+    { title: 'Proposals', desc: 'Review freelancer applications', btn: 'Review', path: '/projects/my' },
+    { title: 'Messages', desc: 'Chat with freelancers', btn: 'Open Inbox', path: '/messages' },
   ];
 
-  // Admin cards
+  const freelancerCards = [
+    { title: 'Browse Projects', desc: 'Find work that matches your skills', btn: 'Explore', path: '/projects' },
+    { title: 'My Proposals', desc: 'Track your submitted applications', btn: 'View Proposals', path: '/proposals/my' },
+    { title: 'Active Contracts', desc: 'See your ongoing work', btn: 'View Contracts', path: '/contracts' },
+    { title: 'Messages', desc: 'Chat with clients', btn: 'Open Inbox', path: '/messages' },
+  ];
+
   const adminCards = [
-    {
-      title: 'Manage Users',
-      desc: 'View and moderate accounts',
-      btn: 'Manage',
-      path: '/admin/users',         // future route
-    },
-    {
-      title: 'All Projects',
-      desc: 'Review marketplace activity',
-      btn: 'View All',
-      path: '/projects',
-    },
-    {
-      title: 'Reports',
-      desc: 'Handle flagged content',
-      btn: 'View Reports',
-      path: '/admin/reports',       // future route
-    },
-    {
-      title: 'Support Tickets',
-      desc: 'Resolve user issues',
-      btn: 'View Tickets',
-      path: '/support',             // future route
-    },
+    { title: 'Manage Users', desc: 'View and moderate accounts', btn: 'Manage', path: '/admin/users' },
+    { title: 'Manage Projects', desc: 'Review marketplace activity', btn: 'View All', path: '/admin/projects' },
+    { title: 'Manage Skills', desc: 'Add skills for freelancers', btn: 'Manage', path: '/admin/skills' },
+    { title: 'Manage Categories', desc: 'Add categories for clients', btn: 'Manage', path: '/admin/categories' },
+    { title: 'Support Tickets', desc: 'Resolve user issues', btn: 'View Tickets', path: '/admin/support' },
   ];
 
   const cards = isClient
@@ -96,7 +34,7 @@ const Dashboard = () => {
     ? freelancerCards
     : adminCards;
 
-   return (
+  return (
     <div className="auth-home">
       <section className="auth-home-hero">
         <div className="auth-home-eyebrow">
@@ -113,7 +51,7 @@ const Dashboard = () => {
         </p>
       </section>
 
-      <div className="auth-home-cards">
+      <div className={`auth-home-cards ${isAdmin ? 'admin-grid' : ''}`}>
         {cards.map((c, i) => (
           <div key={i} className="dash-card">
             <h3>{c.title}</h3>
