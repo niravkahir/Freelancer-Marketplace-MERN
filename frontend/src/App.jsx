@@ -110,7 +110,7 @@ function App() {
             element={<ProtectedRoute><EditProfile /></ProtectedRoute>}
           />
 
-          {/* ✅ Public user profile — uses same Profile.jsx */}
+          {/* Public user profile — uses same Profile.jsx */}
           <Route path="/users/:id" element={<Profile />} />
 
           {/* ---------- Proposals ---------- */}

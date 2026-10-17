@@ -164,7 +164,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing verification data' });
         }
 
-        // ✅ Verify HMAC signature
+        // Verify HMAC signature
         const expectedSignature = crypto
             .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -186,19 +186,19 @@ exports.verifyRazorpayPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Already completed' });
         }
 
-        // ✅ Mark payment completed
+        // Mark payment completed
         payment.status = 'COMPLETED';
         payment.transactionId = razorpay_payment_id;
         payment.completionDate = new Date();
         await payment.save();
 
-        // ✅ Update freelancer earnings
+        // Update freelancer earnings
         await FreelancerProfile.findOneAndUpdate(
             { userId: payment.freelancerId },
             { $inc: { totalEarnings: payment.amount } }
         );
 
-        // ✅ Notify freelancer
+        // Notify freelancer
         try {
             await Notification.create({
                 userId: payment.freelancerId,
@@ -220,7 +220,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
             }
         } catch (e) { console.error('Notification error:', e); }
 
-        // ✅ If project is Completed → lock chat
+        // If project is Completed → lock chat
         const project = await Project.findById(payment.projectId);
         if (project && project.status === 'Completed') {
             project.chatLocked = true;

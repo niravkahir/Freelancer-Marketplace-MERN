@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const onlineUsers = new Map(); // userId → socketId
+const onlineUsers = new Map();
 
 const socketHandler = (io) => {
-    // ✅ Authenticate socket via JWT
+    // Authenticate socket via JWT
     io.use(async (socket, next) => {
         try {
             const token = socket.handshake.auth.token;
@@ -30,14 +30,12 @@ const socketHandler = (io) => {
 
         io.emit('onlineUsers', Array.from(onlineUsers.keys()));
 
-        // ---------- SEND MESSAGE ----------
         socket.on('sendMessage', (payload) => {
             io.to(payload.receiverId).emit('receiveMessage', payload.message);
             io.to(payload.receiverId).emit('unreadUpdate');
             io.to(payload.receiverId).emit('refreshUnread');
         });
 
-        // ---------- TYPING ----------
         socket.on('typing', ({ receiverId, senderName }) => {
             io.to(receiverId).emit('typing', {
                 senderId: userId,
@@ -49,18 +47,16 @@ const socketHandler = (io) => {
             io.to(receiverId).emit('stopTyping', { senderId: userId });
         });
 
-        // ---------- READ RECEIPT ----------
         socket.on('markAsRead', ({ senderId }) => {
             io.to(senderId).emit('messageRead', { by: userId });
         });
 
-        // ✅ NEW: ask navbar to refresh unread badge
+        // ask navbar to refresh unread badge
         socket.on('refreshUnread', () => {
             io.to(userId).emit('refreshUnread');
             io.to(userId).emit('newNotification');
         });
 
-        // ---------- DISCONNECT ----------
         socket.on('disconnect', () => {
             onlineUsers.delete(userId);
             io.emit('onlineUsers', Array.from(onlineUsers.keys()));

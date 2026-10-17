@@ -1,14 +1,29 @@
 :root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #141414;
-  --bg-card: #1a1a1a;
-  --border: #2a2a2a;
-  --gold: #d4af37;
-  --gold-light: #e6c068;
-  --text-primary: #f5f5f5;
-  --text-muted: #a0a0a0;
+  /* White backgrounds */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-card: #FFFFFF;
+
+  /* Borders */
+  --border: #E2E8F0;
+
+  /* Blue accents */
+  --gold: #2563EB;
+  --gold-light: #3B82F6;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-muted: #64748B;
+
+  /* Additional colors */
+  --accent-blue: #2563EB;
+  --accent-blue-hover: #1D4ED8;
+  --accent-yellow: #FACC15;
+
+  /* Fonts: unchanged */
   --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Inter', -apple-system,
+    BlinkMacSystemFont, sans-serif;
 }
 
 * {
@@ -43,8 +58,68 @@ h1, h2, h3 {
   letter-spacing: 0.02em;
 }
 
+/* Primary buttons */
+button[type="submit"],
+.btn-primary,
+.primary-btn {
+  background-color: var(--accent-blue);
+  color: #FFFFFF;
+}
+
+button[type="submit"]:hover,
+.btn-primary:hover,
+.primary-btn:hover {
+  background-color: var(--accent-blue-hover);
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+  background-color: #FFFFFF;
+  color: #111827;
+  border: 1px solid var(--border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94A3B8;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent-blue);
+  outline: 2px solid #DBEAFE;
+}
+
+/* Cards */
+.card,
+.project-card,
+.dashboard-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border);
+}
+
+/* Links and interactive highlights */
+a:hover {
+  color: var(--accent-blue);
+}
+
 /* Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue);
+}

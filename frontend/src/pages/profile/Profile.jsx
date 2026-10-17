@@ -128,12 +128,6 @@ const Profile = () => {
               <h3>STATS</h3>
               <p><strong>Hourly Rate:</strong> ₹{profile?.hourlyRate || 0}/hr</p>
               <p><strong>Experience:</strong> {profile?.experienceYears || 0} years</p>
-              <p>
-                <strong>Rating:</strong>{' '}
-                ⭐ {rating > 0 ? `${rating}/5` : 'No rating yet'}
-                {totalReviews > 0 &&
-                  ` (${totalReviews} review${totalReviews !== 1 ? 's' : ''})`}
-              </p>
               <p><strong>Projects Completed:</strong> {profile?.projectsCompleted || 0}</p>
               {isOwnProfile && (
                 <p><strong>Total Earnings:</strong> ₹{profile?.totalEarnings || 0}</p>
@@ -208,12 +202,6 @@ const Profile = () => {
               <p><strong>Website:</strong> {profile?.companyWebsite || 'Not added'}</p>
               <p><strong>Industry:</strong> {profile?.industry || 'Not added'}</p>
               <p><strong>Size:</strong> {profile?.companySize || 'Not added'}</p>
-              <p>
-                <strong>Rating:</strong>{' '}
-                ⭐ {rating > 0 ? `${rating}/5` : 'No rating yet'}
-                {totalReviews > 0 &&
-                  ` (${totalReviews} review${totalReviews !== 1 ? 's' : ''})`}
-              </p>
             </div>
 
             <div className="profile-card">

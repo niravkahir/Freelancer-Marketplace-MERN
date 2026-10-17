@@ -5,7 +5,7 @@ const clientProfileSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-        unique: true  // One-to-one relationship
+        unique: true  
     },
     companyName: {
         type: String,

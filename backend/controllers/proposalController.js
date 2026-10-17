@@ -3,6 +3,42 @@ const Project = require('../models/Project');
 const Conversation = require('../models/Conversation');
 const Notification = require('../models/Notification');
 
+async function findOrCreateConversation({ clientId, freelancerId, projectId, chatMode }) {
+    const clientStr = clientId.toString();
+    const freelancerStr = freelancerId.toString();
+
+    let conversation = await Conversation.findOne({
+        participants: { $all: [clientStr, freelancerStr] },
+        relatedProject: projectId
+    });
+
+    if (conversation) {
+        if (chatMode) conversation.chatMode = chatMode;
+        conversation.isLocked = false;
+        await conversation.save();
+        return conversation;
+    }
+
+    // Create new — race-safe
+    try {
+        conversation = await Conversation.create({
+            participants: [clientStr, freelancerStr],
+            relatedProject: projectId,
+            chatMode: chatMode || 'PRE_HIRE',
+            isLocked: false
+        });
+        return conversation;
+    } catch (err) {
+        if (err.code === 11000) {
+            return await Conversation.findOne({
+                participants: { $all: [clientStr, freelancerStr] },
+                relatedProject: projectId
+            });
+        }
+        throw err;
+    }
+}
+
 // @desc    Submit proposal
 // @route   POST /api/proposals
 // @access  Private (Freelancer only)
@@ -54,31 +90,19 @@ exports.submitProposal = async (req, res) => {
             $inc: { proposalsCount: 1 }
         });
 
-        // ✅ Create PRE_HIRE conversation — upsert (race-safe)
+        // Find or create PRE_HIRE conversation 
         try {
-            await Conversation.findOneAndUpdate(
-                {
-                    participants: { $all: [project.clientId, req.user.id] },
-                    relatedProject: project._id
-                },
-                {
-                    $setOnInsert: {
-                        participants: [project.clientId, req.user.id],
-                        relatedProject: project._id,
-                        chatMode: 'PRE_HIRE',
-                        isLocked: false
-                    }
-                },
-                { upsert: true, new: true }
-            );
+            await findOrCreateConversation({
+                clientId: project.clientId,
+                freelancerId: req.user.id,
+                projectId: project._id,
+                chatMode: 'PRE_HIRE'
+            });
         } catch (err) {
-            // Ignore duplicate key error — conversation already exists (race condition)
-            if (err.code !== 11000) {
-                console.error('Conversation create error:', err);
-            }
+            console.error('Conversation create error:', err);
         }
 
-        // ✅ Notify client
+        // Notify client
         try {
             await Notification.create({
                 userId: project.clientId,
@@ -219,35 +243,19 @@ exports.acceptProposal = async (req, res) => {
         project.chatLocked = false;
         await project.save();
 
-        // ✅ Upgrade conversation to POST_HIRE — upsert (race-safe)
+        // Upgrade conversation to POST_HIRE — safe helper, no upsert error
         try {
-            await Conversation.findOneAndUpdate(
-                {
-                    participants: { $all: [project.clientId, proposal.freelancerId] },
-                    relatedProject: project._id
-                },
-                {
-                    $set: {
-                        chatMode: 'POST_HIRE',
-                        isLocked: false,
-                        lockedBy: null,
-                        lockedAt: null,
-                        lockReason: null
-                    },
-                    $setOnInsert: {
-                        participants: [project.clientId, proposal.freelancerId],
-                        relatedProject: project._id
-                    }
-                },
-                { upsert: true, new: true }
-            );
+            await findOrCreateConversation({
+                clientId: project.clientId,
+                freelancerId: proposal.freelancerId,
+                projectId: project._id,
+                chatMode: 'POST_HIRE'
+            });
         } catch (err) {
-            if (err.code !== 11000) {
-                console.error('Conversation error:', err);
-            }
+            console.error('Conversation error:', err);
         }
 
-        // ✅ Notify freelancer
+        // Notify freelancer
         try {
             await Notification.create({
                 userId: proposal.freelancerId,

@@ -78,7 +78,6 @@ const freelancerProfileSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for better search performance
 freelancerProfileSchema.index({ skills: 1 });
 freelancerProfileSchema.index({ rating: -1 });
 freelancerProfileSchema.index({ hourlyRate: 1 });

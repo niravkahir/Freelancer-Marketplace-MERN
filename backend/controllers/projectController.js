@@ -20,7 +20,6 @@ exports.createProject = async (req, res) => {
             deadline
         } = req.body;
 
-        // ✅ Check client is verified
         const clientProfile = await ClientProfile.findOne({ userId: req.user.id });
         if (!clientProfile || !clientProfile.verified) {
             return res.status(403).json({
@@ -52,7 +51,7 @@ exports.createProject = async (req, res) => {
             subCategory: subCategory || '',
             skillsRequired,
             experienceLevel: experienceLevel || 'Intermediate',
-            projectType: 'Fixed',   // ✅ Always Fixed
+            projectType: 'Fixed',   
             deadline,
             status: 'Open'
         });
@@ -162,7 +161,7 @@ exports.updateProject = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // ✅ Accept both ObjectId (24-char) or numeric projectId
+        //  Accept both ObjectId (24-char) or numeric projectId
         let query;
         if (/^[0-9a-fA-F]{24}$/.test(id)) {
             query = { _id: id };
@@ -192,7 +191,6 @@ exports.updateProject = async (req, res) => {
             });
         }
 
-        // ✅ Only allow these fields to be updated
         const allowedUpdates = [
             'title',
             'description',
@@ -244,7 +242,6 @@ exports.deleteProject = async (req, res) => {
             });
         }
 
-        // Check ownership
         if (project.clientId.toString() !== req.user.id && req.user.role !== 'ADMIN') {
             return res.status(403).json({
                 success: false,
@@ -321,7 +318,6 @@ exports.markProjectCompleted = async (req, res) => {
         project.completionDate = new Date();
         await project.save();
 
-        // ✅ If payment is already completed → lock chat
         const payment = await Payment.findOne({
             projectId: project._id,
             status: 'COMPLETED'

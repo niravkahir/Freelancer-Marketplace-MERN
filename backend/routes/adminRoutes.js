@@ -10,7 +10,6 @@ const {
     getAllTickets,
     markTicketInProgress,
     resolveTicket,
-    // NEW
     createSkill,
     getAllSkills,
     deleteSkill,

@@ -34,7 +34,6 @@ const conversationSchema = new mongoose.Schema({
     default: null
   },
 
-  // ✅ Allow null OR one of the enum values
   lockReason: {
     type: String,
     enum: ['CLIENT_STOPPED', 'PROJECT_COMPLETED', null],
@@ -66,8 +65,6 @@ const conversationSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-conversationSchema.index({ participants: 1 });
-conversationSchema.index({ relatedProject: 1 });
 conversationSchema.index({ 'lastMessage.sentAt': -1 });
 
 module.exports = mongoose.model('Conversation', conversationSchema);

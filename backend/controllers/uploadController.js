@@ -15,8 +15,8 @@ exports.uploadProfilePicture = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Image uploaded successfully',
-            url: req.file.path,           // ✅ Cloudinary URL
-            publicId: req.file.filename,  // ✅ For deletion later
+            url: req.file.path,           // Cloudinary URL
+            publicId: req.file.filename,  // For deletion later
         });
     } catch (error) {
         console.error('Upload error:', error);

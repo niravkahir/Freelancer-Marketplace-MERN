@@ -1,6 +1,7 @@
 const Review = require('../models/Review');
 const Contract = require('../models/Contract');
 const FreelancerProfile = require('../models/FreelancerProfile');
+const ClientProfile = require('../models/ClientProfile');
 const Notification = require('../models/Notification');
 
 // @desc    Submit review after contract completion
@@ -69,23 +70,50 @@ exports.createReview = async (req, res) => {
             role
         });
 
-        // ✅ If reviewing freelancer → update their average rating
+        // Recalculate + update the reviewee's aggregate rating
         if (isClient) {
+            // Client reviewed Freelancer → update FreelancerProfile
             const allReviews = await Review.find({
                 revieweeId: contract.freelancerId,
                 role: 'CLIENT_TO_FREELANCER'
             });
-            const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+
+            const avg = allReviews.length > 0
+                ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+                : 0;
             const rounded = Math.round(avg * 10) / 10;
 
             await FreelancerProfile.findOneAndUpdate(
                 { userId: contract.freelancerId },
-                { rating: rounded },
-                { upsert: true }
+                {
+                    rating: rounded,
+                    totalReviews: allReviews.length
+                },
+                { upsert: true, new: true }
+            );
+
+        } else {
+            // Freelancer reviewed Client → update ClientProfile 
+            const allReviews = await Review.find({
+                revieweeId: contract.clientId,
+                role: 'FREELANCER_TO_CLIENT'
+            });
+
+            const avg = allReviews.length > 0
+                ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+                : 0;
+            const rounded = Math.round(avg * 10) / 10;
+
+            await ClientProfile.findOneAndUpdate(
+                { userId: contract.clientId },
+                {
+                    rating: rounded,
+                    totalReviews: allReviews.length
+                },
+                { upsert: true, new: true }
             );
         }
 
-        // ✅ Notify reviewee
         try {
             await Notification.create({
                 userId: revieweeId,
@@ -99,7 +127,9 @@ exports.createReview = async (req, res) => {
             if (req.io) {
                 req.io.to(revieweeId.toString()).emit('newNotification');
             }
-        } catch (e) { console.error('Notif error:', e); }
+        } catch (e) {
+            console.error('Notif error:', e);
+        }
 
         res.status(201).json({
             success: true,

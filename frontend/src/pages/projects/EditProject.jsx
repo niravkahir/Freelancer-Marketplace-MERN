@@ -194,7 +194,7 @@ const EditProject = () => {
             />
           </div>
 
-          {/* ❌ No Project Type, ❌ No Status */}
+          {/* No Project Type, No Status */}
           <div className="form-group">
             <label>Experience Level</label>
             <select

@@ -36,13 +36,13 @@ exports.updateProfile = async (req, res) => {
     try {
         const { name, phone, profilePicture } = req.body;
 
-        // ✅ Fetch existing user to check old profile picture
+        // Fetch existing user to check old profile picture
         const existingUser = await User.findById(req.user.id);
         if (!existingUser) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // ✅ If new profile picture provided, delete old one from Cloudinary
+        // If new profile picture provided, delete old one from Cloudinary
         if (
             profilePicture &&
             existingUser.profilePicture &&
@@ -61,11 +61,9 @@ exports.updateProfile = async (req, res) => {
                 await cloudinary.uploader.destroy(publicId);
             } catch (err) {
                 console.error('Old image delete error:', err);
-                // Don't block the update if deletion fails
             }
         }
 
-        // ✅ Update user basic fields
         const user = await User.findByIdAndUpdate(
             req.user.id,
             { name, phone, profilePicture },
@@ -171,12 +169,6 @@ exports.getActiveProjects = async (req, res) => {
 // @desc    Get public profile of another user
 // @route   GET /api/users/:id/profile
 // @access  Public
-// @desc    Get public profile of another user
-// @route   GET /api/users/:id/profile
-// @access  Public
-// @desc    Get public profile of another user
-// @route   GET /api/users/:id/profile
-// @access  Public
 exports.getPublicProfile = async (req, res) => {
     try {
         const { id } = req.params;
@@ -193,7 +185,7 @@ exports.getPublicProfile = async (req, res) => {
             profile = await ClientProfile.findOne({ userId: user._id });
         }
 
-        // ✅ Compute rating from reviews
+        // Compute rating from reviews
         let rating = 0;
         let totalReviews = 0;
 

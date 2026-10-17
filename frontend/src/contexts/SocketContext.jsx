@@ -15,7 +15,7 @@ export const SocketProvider = ({ children }) => {
       const s = connectSocket(token);
       setSocket(s);
 
-      // ✅ Keep as array — your Chat.jsx uses .includes()
+      // Keep as array — your Chat.jsx uses .includes()
       s.on('onlineUsers', (users) => setOnlineUsers(users));
 
       return () => {

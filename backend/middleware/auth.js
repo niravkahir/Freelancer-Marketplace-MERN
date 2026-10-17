@@ -10,7 +10,7 @@ const protect = async (req, res, next) => {
         try {
             token = req.headers.authorization.split(' ')[1];
 
-            // ✅ Check if token is blacklisted
+            // Check if token is blacklisted
             const isBlacklisted = await Blacklist.findOne({ token });
             if (isBlacklisted) {
                 return res.status(401).json({
@@ -92,7 +92,7 @@ const isClient = (req, res, next) => {
     next();
 };
 
-// ✅ FIXED: Check if user is freelancer
+// Check if user is freelancer
 const isFreelancer = (req, res, next) => {
     if (!req.user || req.user.role !== 'FREELANCER') {
         return res.status(403).json({

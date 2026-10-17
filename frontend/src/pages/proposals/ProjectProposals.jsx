@@ -34,7 +34,7 @@ const ProjectProposals = () => {
 
   useEffect(() => { load(); }, [projectId]);
 
-  // ✅ Real-time updates
+  // Real-time updates
   useEffect(() => {
     if (!socket) return;
 

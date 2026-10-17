@@ -14,7 +14,6 @@ exports.getOrCreateConversation = async (req, res) => {
             });
         }
 
-        // ✅ Try to find existing first
         let conversation = await Conversation.findOne({
             participants: { $all: [req.user.id, otherUserId] },
             relatedProject: projectId
@@ -45,40 +44,37 @@ exports.getOrCreateConversation = async (req, res) => {
             });
         }
 
-        // ✅ Use findOneAndUpdate with upsert — atomic operation (no race condition)
-        conversation = await Conversation.findOneAndUpdate(
-            {
-                participants: { $all: [req.user.id, otherUserId] },
-                relatedProject: projectId
-            },
-            {
-                $setOnInsert: {
-                    participants: [req.user.id, otherUserId],
-                    relatedProject: projectId,
-                    chatMode: 'PRE_HIRE',
-                    isLocked: false
+        try {
+            conversation = await Conversation.create({
+                participants: [req.user.id, otherUserId],
+                relatedProject: projectId,
+                chatMode: 'PRE_HIRE',
+                isLocked: false
+            });
+
+            // Populate after create
+            conversation = await Conversation.findById(conversation._id)
+                .populate('participants', 'name email profilePicture role')
+                .populate('relatedProject', 'title status');
+        } catch (createErr) {
+            // Duplicate key → another request created it first
+            if (createErr.code === 11000) {
+                conversation = await Conversation.findOne({
+                    participants: { $all: [req.user.id, otherUserId] },
+                    relatedProject: projectId
+                })
+                    .populate('participants', 'name email profilePicture role')
+                    .populate('relatedProject', 'title status');
+
+                if (conversation) {
+                    return res.status(200).json({ success: true, conversation });
                 }
-            },
-            { upsert: true, new: true }
-        )
-            .populate('participants', 'name email profilePicture role')
-            .populate('relatedProject', 'title status');
+            }
+            throw createErr;
+        }
 
         res.status(200).json({ success: true, conversation });
     } catch (error) {
-        // ✅ Handle duplicate key gracefully (race condition where 2nd create tries)
-        if (error.code === 11000) {
-            const conversation = await Conversation.findOne({
-                participants: { $all: [req.user.id, otherUserId] },
-                relatedProject: projectId
-            })
-                .populate('participants', 'name email profilePicture role')
-                .populate('relatedProject', 'title status');
-
-            if (conversation) {
-                return res.status(200).json({ success: true, conversation });
-            }
-        }
         console.error('Get or create conversation error:', error);
         res.status(500).json({ success: false, message: error.message });
     }

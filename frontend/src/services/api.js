@@ -12,7 +12,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ✅ NO window.location — just clean up storage on 401
+// NO window.location — just clean up storage on 401
 api.interceptors.response.use(
   (res) => res,
   (err) => {

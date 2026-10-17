@@ -2,7 +2,7 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 
-// ✅ Profile picture storage
+// Profile picture storage
 const profileStorage = new CloudinaryStorage({
     cloudinary,
     params: {
@@ -15,7 +15,7 @@ const profileStorage = new CloudinaryStorage({
     },
 });
 
-// ✅ Generic image storage (for future: project attachments, etc.)
+// Generic image storage 
 const imageStorage = new CloudinaryStorage({
     cloudinary,
     params: {
@@ -25,7 +25,6 @@ const imageStorage = new CloudinaryStorage({
     },
 });
 
-// ✅ File size limit: 5MB
 const limits = { fileSize: 5 * 1024 * 1024 };
 
 const uploadProfile = multer({

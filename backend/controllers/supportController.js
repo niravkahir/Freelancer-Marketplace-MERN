@@ -31,7 +31,6 @@ exports.createTicket = async (req, res) => {
             }]
         });
 
-        // ✅ Notify all admins
         try {
             const admins = await User.find({ role: 'ADMIN' });
             for (const admin of admins) {
@@ -155,7 +154,6 @@ exports.addReply = async (req, res) => {
 
         await ticket.save();
 
-        // ✅ Notify the other party
         const receiverId =
             req.user.role === 'ADMIN' ? ticket.userId : null;
 

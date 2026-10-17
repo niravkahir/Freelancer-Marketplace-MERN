@@ -77,10 +77,10 @@ const Navbar = () => {
         </Link>
 
         <ul className="navbar-links">
-          {/* Explore — visible to all */}
+          {/* Public */}
           <li><Link to="/projects">Explore</Link></li>
 
-          {/* ✅ ADMIN-ONLY nav */}
+          {/* Admin-only */}
           {isAuthenticated && isAdmin && (
             <>
               <li><Link to="/admin">Admin</Link></li>
@@ -88,7 +88,7 @@ const Navbar = () => {
             </>
           )}
 
-          {/* ✅ CLIENT nav */}
+          {/* Client only */}
           {isAuthenticated && isClient && (
             <>
               <li><Link to="/projects/my">My Projects</Link></li>
@@ -99,7 +99,7 @@ const Navbar = () => {
             </>
           )}
 
-          {/* ✅ FREELANCER nav */}
+          {/* freelancer only*/}
           {isAuthenticated && isFreelancer && (
             <>
               <li><Link to="/proposals/my">My Proposals</Link></li>

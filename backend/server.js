@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const cors = require('cors');
+const cors = require('cors');     // Cross-Origin Resource Sharing  
 const http = require('http');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');

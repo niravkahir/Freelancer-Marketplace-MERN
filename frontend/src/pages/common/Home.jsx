@@ -21,7 +21,7 @@ const Home = () => {
     {
       icon: '◉',
       title: 'Pay Securely',
-      desc: 'Milestone-based payments protected every step of the way.'
+      desc: 'Easy payments protected every step of the way.'
     },
   ];
 
