@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// ✅ FIXED: Using async/await correctly
+// Using async/await correctly
 userSchema.pre('save', async function(next) {
     try {
         // Only hash the password if it's modified (or new)

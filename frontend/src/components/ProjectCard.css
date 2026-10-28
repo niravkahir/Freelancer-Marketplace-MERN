@@ -2,12 +2,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  background: var(--bg-card);
+  background: var(--bg-card); 
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 1.5rem;
   text-decoration: none;
-  color: inherit;
+  color: var(--text-primary); 
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
@@ -37,26 +37,32 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
 .project-status {
   color: var(--gold);
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  border: 1px solid var(--gold); 
   padding: 0.2rem 0.6rem;
   border-radius: 2px;
 }
 
-.project-category { color: var(--text-muted); }
+.project-category { 
+  color: var(--text-muted); 
+}
 
 .project-title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-family: var(--font-serif);
-  color: var(--text-primary);
+  color: var(--text-primary); 
   letter-spacing: 0.02em;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .project-desc {
@@ -64,6 +70,10 @@
   color: var(--text-muted);
   line-height: 1.6;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .project-skills {
@@ -73,22 +83,26 @@
 }
 
 .skill-chip {
-  background: rgba(212, 175, 55, 0.1);
+  background: var(--bg-secondary);
   color: var(--gold);
   font-size: 0.72rem;
   padding: 0.2rem 0.55rem;
   border-radius: 2px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid var(--border); 
 }
 
-.skill-chip.more { color: var(--text-muted); border-color: var(--border); }
+.skill-chip.more { 
+  color: var(--text-muted); 
+  border-color: var(--border); 
+}
 
 .project-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-top: 0.8rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border); 
+  margin-top: auto;
 }
 
 .project-budget {
@@ -98,7 +112,7 @@
 }
 
 .project-meta {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   letter-spacing: 0.05em;
 }

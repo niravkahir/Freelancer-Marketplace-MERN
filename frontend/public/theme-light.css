@@ -1,0 +1,26 @@
+:root {
+  /* White backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-card: #ffffff;
+
+  /* Borders */
+  --border: #e2e8f0;
+
+  /* Blue accents (Used instead of Gold) */
+  --accent-main: #2563eb;
+  --accent-hover: #1d4ed8;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-muted: #64748b;
+
+  /* Fonts */
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+:root {
+  --gold: var(--accent-main);
+  --gold-light: var(--accent-hover);
+}

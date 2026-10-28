@@ -13,6 +13,22 @@ const Navbar = () => {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
 
+  // ✅ Theme State
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  // ✅ Apply Theme on Mount
+  useEffect(() => {
+    const link = document.getElementById('theme-stylesheet');
+    if (link) {
+      link.href = `/theme-${theme}.css`;
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   const logoPath = isAuthenticated ? '/dashboard' : '/';
 
   const handleLogout = async () => {
@@ -45,7 +61,6 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!socket) return;
-
     const refresh = async () => {
       try {
         const [msgRes, notifRes] = await Promise.all([
@@ -56,11 +71,9 @@ const Navbar = () => {
         setHasUnreadNotifs((notifRes.data.unreadCount || 0) > 0);
       } catch (e) {}
     };
-
     socket.on('refreshUnread', refresh);
     socket.on('unreadUpdate', refresh);
     socket.on('newNotification', refresh);
-
     return () => {
       socket.off('refreshUnread', refresh);
       socket.off('unreadUpdate', refresh);
@@ -77,32 +90,21 @@ const Navbar = () => {
         </Link>
 
         <ul className="navbar-links">
-          {/* Public */}
           <li><Link to="/projects">Explore</Link></li>
-
-          {/* Admin-only */}
-          {isAuthenticated && isAdmin && (
-            <>
-              <li><Link to="/admin">Admin</Link></li>
-              <li><Link to="/admin/support">Support</Link></li>
-            </>
-          )}
-
-          {/* Client only */}
           {isAuthenticated && isClient && (
             <>
               <li><Link to="/projects/my">My Projects</Link></li>
               <li><Link to="/projects/create">Post Project</Link></li>
-              <li><Link to="/contracts">Contracts</Link></li>
-              <li><Link to="/payments">Payments</Link></li>
-              <li><Link to="/support">Support</Link></li>
             </>
           )}
-
-          {/* freelancer only*/}
           {isAuthenticated && isFreelancer && (
+            <li><Link to="/proposals/my">My Proposals</Link></li>
+          )}
+          {isAuthenticated && isAdmin && (
+            <li><Link to="/admin">Admin</Link></li>
+          )}
+          {isAuthenticated && (
             <>
-              <li><Link to="/proposals/my">My Proposals</Link></li>
               <li><Link to="/contracts">Contracts</Link></li>
               <li><Link to="/payments">Payments</Link></li>
               <li><Link to="/support">Support</Link></li>
@@ -111,19 +113,18 @@ const Navbar = () => {
         </ul>
 
         <div className="navbar-actions">
+          {/* ✅ Theme Toggle Button */}
+          <button onClick={toggleTheme} className="nav-icon-btn" title="Toggle Theme">
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+
           {isAuthenticated ? (
             <>
-              {/* Messages icon — hide for admin */}
-              {!isAdmin && (
-                <Link to="/messages" className="nav-icon-btn" title="Messages">
-                  💬
-                  {unreadMessages > 0 && (
-                    <span className="nav-badge">{unreadMessages}</span>
-                  )}
-                </Link>
-              )}
+              <Link to="/messages" className="nav-icon-btn" title="Messages">
+                💬
+                {unreadMessages > 0 && <span className="nav-badge">{unreadMessages}</span>}
+              </Link>
 
-              {/* Notifications — keep for all */}
               <Link to="/notifications" className="nav-icon-btn" title="Notifications">
                 🔔
                 {hasUnreadNotifs && <span className="bell-dot" />}
