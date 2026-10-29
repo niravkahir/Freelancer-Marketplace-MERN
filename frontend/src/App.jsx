@@ -31,8 +31,8 @@ import CreateContract from './pages/contracts/CreateContract';
 import Payments from './pages/payments/Payments';
 import PaymentDetail from './pages/payments/PaymentDetail';
 
-import Support from './pages/support/Support';
-import TicketDetail from './pages/support/TicketDetail';
+import Support from './pages/Support/Support';
+import TicketDetail from './pages/Support/TicketDetail';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
