@@ -38,6 +38,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
+  flex-wrap: wrap;
 }
 
 .cd-status {
@@ -187,5 +188,31 @@
 }
 
 @media (max-width: 800px) {
-  .cd-grid { grid-template-columns: 1fr; }
+  .cd-page {
+    padding: 2rem 1rem;
+  }
+  .cd-grid { 
+    grid-template-columns: 1fr; 
+  }
+}
+
+
+@media (max-width: 800px) {
+  .cd-grid > *,
+  .cd-main > *,
+  .cd-sidebar > * { min-width: 0; }
+  .cd-grid { gap: 1.2rem; }
+}
+
+@media (max-width: 600px) {
+  .cd-header h1 { overflow-wrap: anywhere; }
+  .cd-card { padding: 1.2rem 1rem; }
+  .cd-card p { overflow-wrap: anywhere; }
+  .cd-row {
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .cd-row strong { text-align: right; overflow-wrap: anywhere; }
+  .cd-party { min-width: 0; }
+  .cd-btn-primary { width: 100%; min-height: 46px; }
 }

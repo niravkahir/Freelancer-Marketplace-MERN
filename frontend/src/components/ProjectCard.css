@@ -73,7 +73,7 @@
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
-  line-clamp: 2;   
+  line-clamp: 3;   
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -123,4 +123,31 @@
   font-size: 0.72rem;
   color: var(--text-muted);
   font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .project-card {
+    padding: 1.2rem;
+  }
+  .project-title {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 650px) {
+  .project-card {
+    min-height: 0;
+    height: auto;
+    padding: 1.1rem;
+  }
+  .project-card-header {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .project-card-footer {
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+  }
+  .project-title,
+  .project-desc { overflow-wrap: anywhere; }
 }

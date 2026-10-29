@@ -125,5 +125,31 @@
   color: #4ade80;
 }
 
-@media (max-width: 1000px) { .con-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 650px) { .con-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1000px) { 
+  .con-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+  } 
+}
+
+@media (max-width: 650px) { 
+  .con-page {
+    padding: 2rem 1rem;
+  }
+  .con-grid { 
+    grid-template-columns: 1fr; 
+  } 
+}
+
+@media (max-width: 1000px) {
+  .con-grid > * { min-width: 0; }
+}
+
+@media (max-width: 650px) {
+  .con-grid { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .con-header h1 { font-size: 1.5rem; letter-spacing: 0.1em; }
+  .con-header { padding-bottom: 1.1rem; }
+  .con-card { padding: 1.2rem; }
+  .con-card-top { flex-wrap: wrap; gap: 0.4rem; }
+  .con-card h3 { overflow-wrap: anywhere; }
+  .con-meta { flex-wrap: wrap; }
+}

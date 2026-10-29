@@ -130,10 +130,64 @@
 
 .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
 
+/* ---------- Responsive ---------- */
+
 @media (max-width: 1000px) {
   .mp-list { grid-template-columns: repeat(2, 1fr); }
+  .mp-page { padding: 2.5rem 1.5rem; }
+}
+
+@media (max-width: 768px) {
+  .mp-page { padding: 2rem 1rem; }
+
+  .mp-header h1 { font-size: 1.5rem; }
+
+  .mp-card { padding: 1.25rem; }
+
+  .mp-card h3 { font-size: 1.1rem; }
 }
 
 @media (max-width: 650px) {
   .mp-list { grid-template-columns: 1fr; }
+
+  .mp-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mp-header .btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .mp-actions {
+    flex-direction: column;
+  }
+
+  .mp-actions .btn-outline {
+    width: 100%;
+    text-align: center;
+  }
+
+  .mp-state {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .mp-page { padding: 1.25rem 0.75rem; }
+  .mp-card { padding: 1rem; }
+  .mp-card-top { font-size: 0.65rem; gap: 0.4rem; }
+}
+
+
+@media (max-width: 1000px) {
+  .mp-list > * { min-width: 0; }
+}
+
+@media (max-width: 650px) {
+  .mp-list { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .mp-header h1 { letter-spacing: 0.1em; }
+  .mp-card h3 { overflow-wrap: anywhere; }
+  .mp-actions .btn-outline { min-height: 42px; }
 }

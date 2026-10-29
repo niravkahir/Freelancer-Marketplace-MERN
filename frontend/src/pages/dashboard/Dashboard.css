@@ -1,16 +1,33 @@
-.auth-home { max-width: 1100px; margin: 0 auto; padding: 4rem 2rem; }
-
-.auth-home-hero { text-align: center; margin-bottom: 4rem; }
-
-.auth-home-eyebrow {
-  display: flex; align-items: center; justify-content: center;
-  gap: 1rem; margin-bottom: 1.5rem;
+.auth-home {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
 }
 
-.auth-home-eyebrow .line { width: 60px; height: 1px; background: var(--gold); opacity: 0.5; }
+.auth-home-hero {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.auth-home-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-home-eyebrow .line {
+  width: 60px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+}
 
 .auth-home-eyebrow .text {
-  color: var(--gold); font-size: 0.72rem; letter-spacing: 0.25em;
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
 }
 
 .auth-home-hero h1 {
@@ -18,7 +35,10 @@
   margin-bottom: 1rem;
 }
 
-.auth-home-sub { color: var(--text-muted); font-style: italic; }
+.auth-home-sub {
+  color: var(--text-muted);
+  font-style: italic;
+}
 
 .auth-home-cards {
   display: grid;
@@ -46,9 +66,11 @@
   margin-bottom: 0.6rem;
 }
 
-.dash-card p { color: var(--text-muted); font-size: 0.88rem; }
+.dash-card p {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
 
-/* Card button */
 .dash-card-btn {
   margin-top: 1rem;
   width: 100%;
@@ -79,6 +101,12 @@
 }
 
 @media (max-width: 900px) {
+  .auth-home {
+    padding: 2rem 1rem;
+  }
+  .auth-home-hero {
+    margin-bottom: 2.5rem;
+  }
   .auth-home-cards.admin-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -88,4 +116,53 @@
   .auth-home-cards.admin-grid {
     grid-template-columns: 1fr;
   }
+  .auth-home-hero h1 {
+    font-size: 1.8rem;
+  }
+  .dash-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-home-hero h1 {
+    overflow-wrap: anywhere;
+  }
+  .auth-home-sub {
+    white-space: normal;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    padding: 0 0.25rem;
+  }
+  .auth-home-cards > * { min-width: 0; }
+}
+
+@media (max-width: 600px) {
+  .auth-home { padding: 1.75rem 1rem; }
+  .auth-home-eyebrow { gap: 0.6rem; margin-bottom: 1rem; }
+  .auth-home-eyebrow .line { width: 32px; flex-shrink: 1; }
+  .auth-home-eyebrow .text { font-size: 0.66rem; letter-spacing: 0.2em; }
+  .auth-home-hero h1 {
+    font-size: clamp(1.45rem, 7.2vw, 1.8rem);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+  }
+  .auth-home-sub { font-size: 0.92rem; }
+  .auth-home-hero { margin-bottom: 2rem; }
+
+  /* one clean column of cards */
+  .auth-home-cards,
+  .auth-home-cards.admin-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+  }
+  .dash-card { padding: 1.25rem 1.2rem; }
+  .dash-card-btn { min-height: 44px; }
+}
+
+@media (max-width: 360px) {
+  .auth-home { padding: 1.25rem 0.75rem; }
+  .auth-home-eyebrow .line { width: 20px; }
+  .dash-card { padding: 1.1rem 1rem; }
+  .dash-card-btn { letter-spacing: 0.08em; }
 }

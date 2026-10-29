@@ -130,3 +130,36 @@
 .toggle-password:hover {
   color: var(--gold);
 }
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 2rem 1rem;
+  }
+  .auth-card {
+    padding: 2rem 1.5rem;
+  }
+  .auth-header h1 {
+    font-size: 1.3rem;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .auth-page {
+    min-height: calc(100vh - 110px);
+    min-height: calc(100dvh - 110px);
+    padding: 1.5rem 1rem;
+    align-items: flex-start;
+  }
+  .auth-card { max-width: 100%; }
+  .auth-header { margin-bottom: 1.5rem; }
+  .auth-form { gap: 1rem; }
+  .auth-btn { min-height: 46px; }
+  .toggle-password { min-width: 36px; min-height: 36px; }
+}
+
+@media (max-width: 360px) {
+  .auth-page { padding: 1rem 0.6rem; }
+  .auth-card { padding: 1.5rem 1rem; }
+  .auth-header h1 { letter-spacing: 0.1em; }
+}

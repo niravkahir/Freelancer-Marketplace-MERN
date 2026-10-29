@@ -38,6 +38,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
+  flex-wrap: wrap;
 }
 
 .pd2-status {
@@ -198,8 +199,33 @@
   background: rgba(0, 0, 0, 0.3);
   border-radius: 3px;
   color: var(--text-muted);
+  word-break: break-all;
 }
 
 @media (max-width: 800px) {
-  .pd2-grid { grid-template-columns: 1fr; }
+  .pd2-page {
+    padding: 2rem 1rem;
+  }
+  .pd2-grid { 
+    grid-template-columns: 1fr; 
+  }
+}
+
+@media (max-width: 800px) {
+  .pd2-grid > *,
+  .pd2-main > *,
+  .pd2-sidebar > * { min-width: 0; }
+  .pd2-grid { gap: 1.2rem; }
+}
+
+@media (max-width: 600px) {
+  .pd2-header h1 { overflow-wrap: anywhere; }
+  .pd2-card { padding: 1.2rem 1rem; }
+  .pd2-row {
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .pd2-row strong { text-align: right; overflow-wrap: anywhere; }
+  .pd2-party { min-width: 0; }
+  .pd2-btn-primary { width: 100%; min-height: 48px; }
 }

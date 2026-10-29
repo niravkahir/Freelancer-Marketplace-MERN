@@ -1,7 +1,3 @@
-/* ============================================
-   SUPPORT TICKET DETAIL PAGE
-   ============================================ */
-
 .td-page {
   max-width: 900px;
   margin: 0 auto;
@@ -34,10 +30,6 @@
 
 .btn-back:hover { text-decoration: underline; }
 
-/* ============================================
-   HEADER
-   ============================================ */
-
 .td-header {
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
@@ -64,6 +56,7 @@
   font-size: clamp(1.3rem, 3vw, 1.8rem);
   letter-spacing: 0.02em;
   margin-bottom: 0.6rem;
+  word-break: break-word;
 }
 
 .td-meta {
@@ -74,9 +67,6 @@
   font-size: 0.82rem;
 }
 
-/* ============================================
-   THREAD (Description + Admin Response)
-   ============================================ */
 
 .td-thread {
   display: flex;
@@ -138,9 +128,6 @@
   margin: 0;
 }
 
-/* ============================================
-   STATUS BANNER (full width, matches description)
-   ============================================ */
 
 .td-closed {
   width: 100%;
@@ -162,9 +149,6 @@
   color: var(--gold);
 }
 
-/* ============================================
-   CLOSE BUTTON
-   ============================================ */
 
 .td-close-btn {
   display: block;
@@ -191,10 +175,6 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-
-/* ============================================
-   BADGES (status + priority)
-   ============================================ */
 
 .sup-status {
   padding: 0.2rem 0.6rem;
@@ -246,18 +226,44 @@
   border-color: rgba(220, 50, 50, 0.5);
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
 
 @media (max-width: 600px) {
   .td-page {
     padding: 2rem 1rem;
   }
+  
+  .td-id {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 0.2rem;
+  }
+
   .td-msg {
     padding: 1.1rem 1.2rem;
   }
+
+  .td-msg-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  
+  .td-msg-time {
+    white-space: normal;
+  }
+
   .td-closed {
     padding: 1rem 1.2rem;
   }
+}
+
+
+@media (max-width: 600px) {
+  .td-page { min-height: auto; }
+  .td-header { margin-bottom: 1.4rem; padding-bottom: 1.1rem; }
+  .td-header-top { gap: 0.4rem; }
+  .td-header h1 { overflow-wrap: anywhere; }
+  .td-thread { gap: 0.8rem; }
+  .td-msg p { font-size: 0.9rem; }
+  .td-close-btn { width: 100%; min-height: 44px; }
 }

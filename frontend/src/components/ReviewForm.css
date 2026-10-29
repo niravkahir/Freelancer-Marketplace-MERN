@@ -97,3 +97,19 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 480px) {
+  .review-form {
+    padding: 1rem;
+  }
+  .review-stars {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-stars { flex-wrap: wrap; gap: 0.2rem; }
+  .review-rating-text { margin-left: 0.4rem; }
+  .review-form button { min-height: 44px; }
+  .review-form textarea { width: 100%; min-width: 0; }
+}

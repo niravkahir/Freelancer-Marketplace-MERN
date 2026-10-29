@@ -111,6 +111,7 @@
   font-family: var(--font-serif);
   color: var(--text-primary);
   margin-bottom: 0.6rem;
+  word-break: break-word;
 }
 
 .sup-meta {
@@ -119,6 +120,7 @@
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-bottom: 0.8rem;
+  flex-wrap: wrap;
 }
 
 .sup-footer {
@@ -128,6 +130,8 @@
   border-top: 1px solid var(--border);
   font-size: 0.72rem;
   color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 /* Modal */
@@ -202,6 +206,7 @@
   border-radius: 3px;
   font-family: inherit;
   resize: vertical;
+  width: 100%;
 }
 
 .form-group input:focus,
@@ -246,3 +251,70 @@
 
 .btn-save:hover:not(:disabled) { background: var(--gold-light); }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 768px) {
+  .sup-page { padding: 2.5rem 1.5rem; }
+  .sup-header h1 { font-size: 1.5rem; }
+  .sup-card { padding: 1.25rem; }
+}
+
+@media (max-width: 600px) {
+  .sup-page { padding: 2rem 1rem; }
+  .sup-state { padding: 2rem 1rem; }
+  
+  .sup-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sup-header .btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .sup-id {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 0.2rem;
+  }
+
+  .sup-card h3 { font-size: 1.05rem; }
+  
+  .sup-footer {
+    flex-direction: column;
+  }
+
+  .modal { padding: 1.5rem; }
+  
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .modal-actions .btn-cancel,
+  .modal-actions .btn-save {
+    width: 100%;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .sup-list > * { min-width: 0; }
+}
+
+@media (max-width: 600px) {
+  .sup-header h1 { font-size: 1.5rem; letter-spacing: 0.1em; }
+  .sup-header .btn-primary { min-height: 44px; }
+  .sup-card h3 { overflow-wrap: anywhere; }
+  .sup-card-top { gap: 0.4rem; }
+
+  .modal-overlay { padding: 0.75rem; }
+  .modal {
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    overflow-y: auto;
+  }
+  .sup-form .form-group input,
+  .sup-form .form-group select { min-height: 44px; }
+}

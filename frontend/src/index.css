@@ -68,3 +68,50 @@ select:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-main);
 }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 900px) {
+  /* stop any wide element from creating sideways scroll / zoom-out */
+  html { overflow-x: hidden; }
+
+  img, video { max-width: 100%; height: auto; }
+
+  h1, h2, h3, h4, p, a, li, span, strong, label {
+    overflow-wrap: break-word;
+  }
+
+  input, select, textarea {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 16px inputs stop iOS Safari from zooming the page on focus */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+}
+
+/* Touch screens: no "stuck" hover lift effects */
+@media (hover: none) {
+  .dash-card:hover,
+  .feature-card:hover,
+  .project-card:hover,
+  .con-card:hover,
+  .pay-card:hover,
+  .sup-card:hover,
+  .ad-nav-card:hover,
+  .ad-user-row.clickable:hover,
+  .hero-btn-primary:hover {
+    transform: none;
+  }
+}

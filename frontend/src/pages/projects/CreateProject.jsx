@@ -21,7 +21,7 @@ const CreateProject = () => {
     deadline: '',
   });
 
-  // ✅ NEW: AI states
+  // AI states
   const [aiKeywords, setAiKeywords] = useState('');
   const [generating, setGenerating] = useState(false);
   const [aiError, setAiError] = useState('');
@@ -60,7 +60,7 @@ const CreateProject = () => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  // ✅ Generate description with AI
+  // Generate description with AI
   const handleGenerateDescription = async () => {
     if (aiKeywords.trim().length < 5) {
       setAiError('Please write at least 5 characters');
@@ -94,7 +94,7 @@ const CreateProject = () => {
     }
   };
 
-  // ✅ Suggest skills with AI
+  // Suggest skills with AI
   const handleSuggestSkills = async () => {
     if (!form.title || !form.description) {
       setAiError('Please add title and description first');
@@ -189,7 +189,7 @@ const CreateProject = () => {
         {error && <div className="create-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="create-form">
-          {/* ✅ AI HELPER PANEL */}
+          {/* AI HELPER PANEL */}
           <div className="ai-helper-box">
             <div className="ai-helper-header">
               <span className="ai-icon">✨</span>

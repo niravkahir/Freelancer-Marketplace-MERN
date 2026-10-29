@@ -147,3 +147,70 @@
 }
 
 .btn-danger:hover { background: rgba(220, 50, 50, 0.15); }
+
+@media (max-width: 600px) {
+  .notif-page {
+    padding: 2rem 1rem;
+  }
+  .notif-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .notif-list > * { min-width: 0; }
+}
+
+@media (max-width: 600px) {
+  .notif-page { width: 100%; }
+  .notif-header { gap: 0.8rem; margin-bottom: 1.4rem; }
+  .notif-header h1 { font-size: 1.5rem; letter-spacing: 0.1em; }
+  .notif-header > div:first-child { min-width: 0; }
+
+  /* buttons share one full-width row */
+  .notif-header-actions { width: 100%; gap: 0.6rem; }
+  .notif-header-actions button,
+  .notif-header-actions .btn-outline,
+  .notif-header-actions .btn-danger {
+    flex: 1 1 0;
+    min-height: 42px;
+    padding: 0.55rem 0.6rem;
+    font-size: 0.68rem;
+    text-align: center;
+  }
+
+  .notif-state { padding: 2rem 1rem; }
+  .notif-list { gap: 0.55rem; }
+  .notif-item {
+    padding: 0.9rem 0.8rem;
+    gap: 0.65rem;
+    max-width: 100%;
+  }
+  .notif-icon { width: 30px; font-size: 1.3rem; }
+  .notif-body { min-width: 0; }
+  .notif-top {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .notif-top h3 {
+    font-size: 0.92rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .notif-body p {
+    font-size: 0.84rem;
+    overflow-wrap: anywhere;
+  }
+  .notif-delete {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .notif-item { padding: 0.8rem 0.65rem; gap: 0.5rem; }
+  .notif-icon { width: 24px; font-size: 1.15rem; }
+  .notif-delete { width: 30px; height: 30px; }
+}

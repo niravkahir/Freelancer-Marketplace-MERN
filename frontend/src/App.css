@@ -7,3 +7,15 @@
 .main-content {
   flex: 1;
 }
+
+@media (max-width: 900px) {
+  .app {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  .main-content {
+    width: 100%;
+    min-width: 0;
+  }
+}
